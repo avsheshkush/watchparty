@@ -3,9 +3,15 @@ import { useRoom } from "../context/RoomContext";
 import { useSocket } from "../context/SocketContext";
 import { ShareRoom } from "./ShareRoom";
 import { ParticipantList } from "./ParticipantList";
+import { VideoPlayer } from "./VideoPlayer";
 
-export const RoomPage: React.FC = () => {
-  const { roomId, you, leaveRoom, videoState } = useRoom();
+interface RoomPageProps {
+  onRequestVideoChange?: (url: string) => void;
+  onRequestAction?: (type: "play" | "pause" | "seek", payload?: { time?: number }) => void;
+}
+
+export const RoomPage: React.FC<RoomPageProps> = ({ onRequestVideoChange, onRequestAction }) => {
+  const { roomId, you, leaveRoom } = useRoom();
   const { isConnected } = useSocket();
 
   if (!roomId) return null;
@@ -80,37 +86,12 @@ export const RoomPage: React.FC = () => {
           alignItems: "start",
         }}
       >
-        {/* Left Column: Video Area & Custom Controls Container */}
+        {/* Left Column: Video Area & Custom Controls */}
         <section style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-          {/* Video Player Container */}
-          <div
-            id="video-player-container"
-            className="glass-panel"
-            style={{
-              position: "relative",
-              width: "100%",
-              aspectRatio: "16 / 9",
-              background: "#000",
-              overflow: "hidden",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: "var(--radius-lg)",
-            }}
-          >
-            {/* Phase 4 Video Placeholder (Phase 5 will mount YouTube IFrame here) */}
-            <div style={{ textAlign: "center", padding: "2rem" }}>
-              <div style={{ fontSize: "3.5rem", marginBottom: "0.75rem", opacity: 0.8 }}>🎥</div>
-              <h3 style={{ fontSize: "1.25rem", fontWeight: 700, marginBottom: "0.5rem" }}>
-                YouTube Player Shell
-              </h3>
-              <p style={{ color: "var(--text-muted)", fontSize: "0.875rem", maxWidth: "420px", margin: "0 auto" }}>
-                {videoState
-                  ? `Active Video: ${videoState.videoId} (${videoState.playState.toUpperCase()} at ${videoState.position}s)`
-                  : "Connecting playback sync engine..."}
-              </p>
-            </div>
-          </div>
+          <VideoPlayer
+            onRequestVideoChange={onRequestVideoChange}
+            onRequestAction={onRequestAction}
+          />
 
           {/* User Status Bar */}
           <div

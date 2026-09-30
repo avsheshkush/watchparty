@@ -113,18 +113,18 @@
 ## Phase 5 — Frontend: YouTube player & client-side sync
 **Goal:** the actual watch party experience.
 
-- [ ] P5-T1 `useYouTubePlayer` hook: load IFrame API script once, create `YT.Player` with `controls:0`, `disablekb:1`, `modestbranding:1`, `rel:0`
-- [ ] P5-T2 Transparent overlay on the iframe so users can't click the native player
-- [ ] P5-T3 "Join / Start" click gate (satisfies browser autoplay policy) + "Unmute" fallback
-- [ ] P5-T4 `apply(state)` function: load/cue video if `videoId` differs, `seekTo` to expected position, play/pause per `playState`
-- [ ] P5-T5 `isApplyingRemote` guard so programmatic changes don't emit events (no echo loops)
-- [ ] P5-T6 Custom `PlaybackControls`: play/pause button, seek slider (current time / duration), time labels
-- [ ] P5-T7 Emit `play`/`pause`/`seek` from controls **only** for Host/Moderator; controls disabled with tooltip for Participants
-- [ ] P5-T8 `VideoUrlForm` (paste YouTube URL) → `change_video` for Host/Mod; show invalid-URL error from ack
-- [ ] P5-T9 Drift correction: on each `sync_state`, seek only when `|local − expected| > 1.5 s`; ignore stale `version`
-- [ ] P5-T10 Late-join sync: on `room_state`, load video and jump to effective position
-- [ ] P5-T11 Player `onError` handling (embedding disabled, invalid ID) with toast
-- [ ] P5-T12 Correct-back logic: if a restricted user's local player somehow diverges, re-apply the last server state
+- [x] P5-T1 `useYouTubePlayer` hook: load IFrame API script once, create `YT.Player` with `controls:0`, `disablekb:1`, `modestbranding:1`, `rel:0`
+- [x] P5-T2 Transparent overlay on the iframe so users can't click the native player
+- [x] P5-T3 "Join / Start" click gate (satisfies browser autoplay policy) + "Unmute" fallback
+- [x] P5-T4 `apply(state)` function: load/cue video if `videoId` differs, `seekTo` to expected position, play/pause per `playState`
+- [x] P5-T5 `isApplyingRemote` guard so programmatic changes don't emit events (no echo loops)
+- [x] P5-T6 Custom `PlaybackControls`: play/pause button, seek slider (current time / duration), time labels
+- [x] P5-T7 Emit `play`/`pause`/`seek` from controls **only** for Host/Moderator; controls disabled with tooltip for Participants
+- [x] P5-T8 `VideoUrlForm` (paste YouTube URL) → `change_video` for Host/Mod; show invalid-URL error from ack
+- [x] P5-T9 Drift correction: on each `sync_state`, seek only when `|local − expected| > 1.5 s`; ignore stale `version`
+- [x] P5-T10 Late-join sync: on `room_state`, load video and jump to effective position
+- [x] P5-T11 Player `onError` handling (embedding disabled, invalid ID) with toast
+- [x] P5-T12 Correct-back logic: if a restricted user's local player somehow diverges, re-apply the last server state
 
 **DoD:** Host and Moderator controls sync to all tabs within ~1 s; Participant cannot change anything; a tab joining mid-video lands at the right timestamp.
 
