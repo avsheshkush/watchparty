@@ -3,6 +3,7 @@ import { RoomManager } from "../rooms/RoomManager";
 import { registerRoomHandlers } from "./roomHandlers";
 import { registerRoleHandlers } from "./roleHandlers";
 import { registerPlaybackHandlers } from "./playbackHandlers";
+import { registerRequestHandlers } from "./requestHandlers";
 
 export class MessageHandler {
   private io: Server;
@@ -25,5 +26,8 @@ export class MessageHandler {
 
     // Phase 3: Playback sync handlers (play, pause, seek, change_video)
     registerPlaybackHandlers(this.io, socket, this.roomManager);
+
+    // Phase 6: Request & Approval handlers (action_request, resolve_request)
+    registerRequestHandlers(this.io, socket, this.roomManager);
   }
 }

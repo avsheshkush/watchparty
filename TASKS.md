@@ -133,15 +133,15 @@
 ## Phase 6 — Role management UI & approval workflow
 **Goal:** finish every Host capability and the participant-request flow.
 
-- [ ] P6-T1 Host menu per participant: **Make Moderator / Make Participant**, **Remove**, **Make Host** (transfer) with confirm dialogs
-- [ ] P6-T2 Hide/disable host-only actions for non-hosts; live-update UI on `role_assigned` / `host_transferred` (controls enable/disable instantly)
-- [ ] P6-T3 Backend: `PendingRequest` store in `Room` (limit 3 per user, 60 s expiry cleanup)
-- [ ] P6-T4 Backend: `action_request` handler (Participant only; validates `type` + payload) → emit `request_created` to Host + Mods only
-- [ ] P6-T5 Backend: `resolve_request` handler (Host/Mod) → execute via the same Room methods as privileged actions → broadcast `sync_state`; emit `request_resolved`
-- [ ] P6-T6 Backend: clear requests when requester leaves/removed/promoted; handle expired/unknown IDs (`REQUEST_NOT_FOUND`)
-- [ ] P6-T7 Frontend `RequestButton` for Participants (request pause/play/seek/change video) with pending-state feedback
-- [ ] P6-T8 Frontend `RequestQueue` for Host/Mod with **Approve / Reject**; notification badge
-- [ ] P6-T9 Tests: participant request → approve executes and syncs; reject does nothing; participant cannot resolve; expired request rejected
+- [x] P6-T1 Host menu per participant: **Make Moderator / Make Participant**, **Remove**, **Make Host** (transfer) with confirm dialogs
+- [x] P6-T2 Hide/disable host-only actions for non-hosts; live-update UI on `role_assigned` / `host_transferred` (controls enable/disable instantly)
+- [x] P6-T3 Backend: `PendingRequest` store in `Room` (limit 3 per user, 60 s expiry cleanup)
+- [x] P6-T4 Backend: `action_request` handler (Participant only; validates `type` + payload) → emit `request_created` to Host + Mods only
+- [x] P6-T5 Backend: `resolve_request` handler (Host/Mod) → execute via the same Room methods as privileged actions → broadcast `sync_state`; emit `request_resolved`
+- [x] P6-T6 Backend: clear requests when requester leaves/removed/promoted; handle expired/unknown IDs (`REQUEST_NOT_FOUND`)
+- [x] P6-T7 Frontend `RequestButton` for Participants (request pause/play/seek/change video) with pending-state feedback
+- [x] P6-T8 Frontend `RequestQueue` for Host/Mod with **Approve / Reject**; notification badge
+- [x] P6-T9 Tests: participant request → approve executes and syncs; reject does nothing; participant cannot resolve; expired request rejected
 
 **DoD:** full flow demonstrable in 3 tabs: Participant requests a new video → Host approves → all tabs switch; Host promotes user → user's controls unlock immediately.
 

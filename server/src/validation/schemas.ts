@@ -77,6 +77,28 @@ export const changeVideoSchema = z
     message: "Either 'url' or 'videoId' must be provided",
   });
 
+export const actionRequestSchema = z
+  .object({
+    type: z.enum(["play", "pause", "seek", "change_video"], {
+      errorMap: () => ({ message: "Request type must be play, pause, seek, or change_video" }),
+    }),
+    payload: z
+      .object({
+        time: z.number().min(0).optional(),
+        url: z.string().optional(),
+        videoId: z.string().optional(),
+      })
+      .default({}),
+  })
+  .strict();
+
+export const resolveRequestSchema = z
+  .object({
+    requestId: z.string().min(1, "requestId is required"),
+    approve: z.boolean(),
+  })
+  .strict();
+
 export type CreateRoomInput = z.infer<typeof createRoomSchema>;
 export type JoinRoomInput = z.infer<typeof joinRoomSchema>;
 export type LeaveRoomInput = z.infer<typeof leaveRoomSchema>;
@@ -87,3 +109,5 @@ export type PlayInput = z.infer<typeof playSchema>;
 export type PauseInput = z.infer<typeof pauseSchema>;
 export type SeekInput = z.infer<typeof seekSchema>;
 export type ChangeVideoInput = z.infer<typeof changeVideoSchema>;
+export type ActionRequestInput = z.infer<typeof actionRequestSchema>;
+export type ResolveRequestInput = z.infer<typeof resolveRequestSchema>;

@@ -23,6 +23,11 @@ interface RoomContextValue {
   addToast: (type: ToastMessage["type"], text: string) => void;
   removeToast: (id: string) => void;
   clearKickedReason: () => void;
+  submitActionRequest: (type: PendingRequest["type"], payload?: PendingRequest["payload"]) => Promise<void>;
+  resolveActionRequest: (requestId: string, approve: boolean) => Promise<void>;
+  assignParticipantRole: (userId: string, role: "moderator" | "participant") => Promise<void>;
+  removeParticipant: (userId: string) => Promise<void>;
+  transferHost: (userId: string) => Promise<void>;
 }
 
 const RoomContext = createContext<RoomContextValue | null>(null);
@@ -178,6 +183,32 @@ export const RoomProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
     };
 
+    // Request created (Host + Mods receive this)
+    const handleRequestCreated = (request: PendingRequest) => {
+      setPendingRequests((prev) => [...prev.filter((r) => r.requestId !== request.requestId), request]);
+      addToast("info", `New Request: ${request.username} wants to ${request.type.replace("_", " ")}`);
+    };
+
+    // Request resolved
+    const handleRequestResolved = (data: {
+      requestId: string;
+      approved: boolean;
+      actionType?: string;
+      fromUserId?: string;
+    }) => {
+      setPendingRequests((prev) => prev.filter((r) => r.requestId !== data.requestId));
+      setYou((currentYou) => {
+        if (currentYou && currentYou.userId === data.fromUserId) {
+          if (data.approved) {
+            addToast("success", `Your ${data.actionType?.replace("_", " ") || "action"} request was approved!`);
+          } else {
+            addToast("error", `Your ${data.actionType?.replace("_", " ") || "action"} request was declined.`);
+          }
+        }
+        return currentYou;
+      });
+    };
+
     socket.on("room_state", handleRoomState);
     socket.on("user_joined", handleUserJoined);
     socket.on("user_left", handleUserLeft);
@@ -186,6 +217,8 @@ export const RoomProvider: React.FC<{ children: React.ReactNode }> = ({ children
     socket.on("removed", handleRemoved);
     socket.on("host_transferred", handleHostTransferred);
     socket.on("sync_state", handleSyncState);
+    socket.on("request_created", handleRequestCreated);
+    socket.on("request_resolved", handleRequestResolved);
 
     return () => {
       socket.off("room_state", handleRoomState);
@@ -196,6 +229,8 @@ export const RoomProvider: React.FC<{ children: React.ReactNode }> = ({ children
       socket.off("removed", handleRemoved);
       socket.off("host_transferred", handleHostTransferred);
       socket.off("sync_state", handleSyncState);
+      socket.off("request_created", handleRequestCreated);
+      socket.off("request_resolved", handleRequestResolved);
     };
   }, [socket, addToast]);
 
@@ -263,7 +298,33 @@ export const RoomProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setYou(null);
     setParticipants([]);
     setVideoState(null);
+    setPendingRequests([]);
     window.history.pushState({}, "", "/");
+  };
+
+  const submitActionRequest = async (
+    type: PendingRequest["type"],
+    payload: PendingRequest["payload"] = {}
+  ): Promise<void> => {
+    await emitWithAck("action_request", { type, payload });
+    addToast("info", `Request submitted: ${type.replace("_", " ")}`);
+  };
+
+  const resolveActionRequest = async (requestId: string, approve: boolean): Promise<void> => {
+    await emitWithAck("resolve_request", { requestId, approve });
+    setPendingRequests((prev) => prev.filter((r) => r.requestId !== requestId));
+  };
+
+  const assignParticipantRole = async (userId: string, role: "moderator" | "participant"): Promise<void> => {
+    await emitWithAck("assign_role", { userId, role });
+  };
+
+  const removeParticipant = async (userId: string): Promise<void> => {
+    await emitWithAck("remove_participant", { userId });
+  };
+
+  const transferHost = async (userId: string): Promise<void> => {
+    await emitWithAck("transfer_host", { userId });
   };
 
   return (
@@ -282,6 +343,11 @@ export const RoomProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addToast,
         removeToast,
         clearKickedReason,
+        submitActionRequest,
+        resolveActionRequest,
+        assignParticipantRole,
+        removeParticipant,
+        transferHost,
       }}
     >
       {children}

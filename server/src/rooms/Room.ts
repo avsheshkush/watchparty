@@ -1,13 +1,31 @@
 import { Participant, ParticipantSnapshot } from "./Participant";
 import { VideoState, VideoStateSnapshot, SyncStatePayload } from "./VideoState";
+import { RolePolicy } from "../policy/rolePolicy";
+import crypto from "crypto";
 
 export const MAX_PARTICIPANTS = 50;
+export const MAX_PENDING_PER_USER = 3;
+export const REQUEST_TTL_MS = 60 * 1000; // 60s per SPEC §5
+
+export interface PendingRequest {
+  requestId: string;
+  fromUserId: string;
+  username: string;
+  type: "play" | "pause" | "seek" | "change_video";
+  payload: {
+    time?: number;
+    url?: string;
+    videoId?: string;
+  };
+  createdAt: number;
+}
 
 export interface RoomSnapshot {
   roomId: string;
   hostId: string;
   participants: ParticipantSnapshot[];
   videoState: VideoStateSnapshot;
+  pendingRequests?: PendingRequest[];
   createdAt: number;
 }
 
@@ -16,6 +34,7 @@ export class Room {
   public hostId: string;
   public readonly participants: Map<string, Participant>; // userId -> Participant
   public readonly video: VideoState;
+  public readonly pendingRequests: Map<string, PendingRequest>; // requestId -> PendingRequest
   public readonly createdAt: number;
   public lastActiveAt: number;
   private heartbeatInterval: NodeJS.Timeout | null = null;
@@ -24,6 +43,7 @@ export class Room {
     this.roomId = roomId;
     this.hostId = initialHost.userId;
     this.participants = new Map<string, Participant>();
+    this.pendingRequests = new Map<string, PendingRequest>();
     this.video = new VideoState(initialVideoId);
     this.createdAt = Date.now();
     this.lastActiveAt = Date.now();
@@ -82,6 +102,9 @@ export class Room {
     }
 
     target.role = role;
+    if (role === "moderator") {
+      this.clearRequestsForUser(targetId);
+    }
     return target;
   }
 
@@ -108,6 +131,7 @@ export class Room {
       throw new Error("TARGET_NOT_FOUND");
     }
 
+    this.clearRequestsForUser(targetId);
     this.participants.delete(targetId);
     return target;
   }
@@ -141,10 +165,107 @@ export class Room {
   }
 
   /**
+   * Submits an action request from a participant.
+   */
+  public createRequest(
+    fromParticipant: Participant,
+    type: PendingRequest["type"],
+    payload: PendingRequest["payload"]
+  ): PendingRequest {
+    this.touch();
+    this.cleanupExpiredRequests();
+
+    // Limit max 3 pending per participant per SPEC §5
+    let userPendingCount = 0;
+    for (const req of this.pendingRequests.values()) {
+      if (req.fromUserId === fromParticipant.userId) {
+        userPendingCount++;
+      }
+    }
+    if (userPendingCount >= MAX_PENDING_PER_USER) {
+      throw new Error("MAX_PENDING_REQUESTS");
+    }
+
+    const requestId = crypto.randomUUID();
+    const req: PendingRequest = {
+      requestId,
+      fromUserId: fromParticipant.userId,
+      username: fromParticipant.username,
+      type,
+      payload,
+      createdAt: Date.now(),
+    };
+
+    this.pendingRequests.set(requestId, req);
+    return req;
+  }
+
+  /**
+   * Resolves a pending request (Approve or Reject) by Host or Moderator.
+   */
+  public resolveRequest(
+    resolver: Participant,
+    requestId: string,
+    approve: boolean
+  ): { request: PendingRequest; syncPayload?: SyncStatePayload } {
+    this.touch();
+    this.cleanupExpiredRequests();
+
+    if (!RolePolicy.can(resolver.role, "resolve_request")) {
+      throw new Error("FORBIDDEN");
+    }
+
+    const req = this.pendingRequests.get(requestId);
+    if (!req) {
+      throw new Error("REQUEST_NOT_FOUND");
+    }
+
+    this.pendingRequests.delete(requestId);
+
+    let syncPayload: SyncStatePayload | undefined;
+    if (approve) {
+      if (req.type === "play") {
+        syncPayload = this.video.play(req.payload.time);
+      } else if (req.type === "pause") {
+        syncPayload = this.video.pause();
+      } else if (req.type === "seek" && req.payload.time !== undefined) {
+        syncPayload = this.video.seek(req.payload.time);
+      } else if (req.type === "change_video" && req.payload.videoId) {
+        syncPayload = this.video.change(req.payload.videoId);
+      }
+    }
+
+    return { request: req, syncPayload };
+  }
+
+  public clearRequestsForUser(userId: string): void {
+    for (const [id, req] of this.pendingRequests.entries()) {
+      if (req.fromUserId === userId) {
+        this.pendingRequests.delete(id);
+      }
+    }
+  }
+
+  public cleanupExpiredRequests(): void {
+    const now = Date.now();
+    for (const [id, req] of this.pendingRequests.entries()) {
+      if (now - req.createdAt > REQUEST_TTL_MS) {
+        this.pendingRequests.delete(id);
+      }
+    }
+  }
+
+  public getPendingRequests(): PendingRequest[] {
+    this.cleanupExpiredRequests();
+    return Array.from(this.pendingRequests.values());
+  }
+
+  /**
    * Removes a participant completely from the room.
    */
   public leave(userId: string): Participant | null {
     this.touch();
+    this.clearRequestsForUser(userId);
     const p = this.participants.get(userId);
     if (p) {
       this.participants.delete(userId);
@@ -244,6 +365,7 @@ export class Room {
       hostId: this.hostId,
       participants: this.getParticipantList(),
       videoState: this.video.toSnapshot(),
+      pendingRequests: this.getPendingRequests(),
       createdAt: this.createdAt,
     };
   }

@@ -4,6 +4,8 @@ import { useSocket } from "../context/SocketContext";
 import { ShareRoom } from "./ShareRoom";
 import { ParticipantList } from "./ParticipantList";
 import { VideoPlayer } from "./VideoPlayer";
+import { RequestQueue } from "./RequestQueue";
+import { RequestModal } from "./RequestModal";
 
 interface RoomPageProps {
   onRequestVideoChange?: (url: string) => void;
@@ -15,6 +17,8 @@ export const RoomPage: React.FC<RoomPageProps> = ({ onRequestVideoChange, onRequ
   const { isConnected } = useSocket();
 
   if (!roomId) return null;
+
+  const isPrivileged = you?.role === "host" || you?.role === "moderator";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
@@ -86,14 +90,17 @@ export const RoomPage: React.FC<RoomPageProps> = ({ onRequestVideoChange, onRequ
           alignItems: "start",
         }}
       >
-        {/* Left Column: Video Area & Custom Controls */}
-        <section style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+        {/* Left Column: Video Area, Requests, & Custom Controls */}
+        <section style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          {/* Request Queue for Host/Moderator */}
+          {isPrivileged && <RequestQueue />}
+
           <VideoPlayer
             onRequestVideoChange={onRequestVideoChange}
             onRequestAction={onRequestAction}
           />
 
-          {/* User Status Bar */}
+          {/* User Status Bar & Request Trigger for Participants */}
           <div
             className="glass-panel"
             style={{
@@ -101,6 +108,8 @@ export const RoomPage: React.FC<RoomPageProps> = ({ onRequestVideoChange, onRequ
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
+              flexWrap: "wrap",
+              gap: "0.75rem",
             }}
           >
             <div>
@@ -108,10 +117,14 @@ export const RoomPage: React.FC<RoomPageProps> = ({ onRequestVideoChange, onRequ
               <div style={{ fontWeight: 700, fontSize: "1rem" }}>{you?.username || "Guest"}</div>
             </div>
 
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", textTransform: "uppercase" }}>Your Role</div>
-              <div style={{ fontWeight: 700, fontSize: "0.95rem", color: you?.role === "host" ? "#fbbf24" : you?.role === "moderator" ? "#c084fc" : "#94a3b8" }}>
-                {you?.role === "host" ? "👑 Room Host" : you?.role === "moderator" ? "🛡️ Moderator" : "Viewer"}
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+              {!isPrivileged && <RequestModal />}
+
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", textTransform: "uppercase" }}>Your Role</div>
+                <div style={{ fontWeight: 700, fontSize: "0.95rem", color: you?.role === "host" ? "#fbbf24" : you?.role === "moderator" ? "#c084fc" : "#94a3b8" }}>
+                  {you?.role === "host" ? "👑 Room Host" : you?.role === "moderator" ? "🛡️ Moderator" : "Viewer"}
+                </div>
               </div>
             </div>
           </div>
