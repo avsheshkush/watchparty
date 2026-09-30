@@ -41,17 +41,17 @@
 ## Phase 1 — Backend: rooms & connections
 **Goal:** users can create/join/leave rooms; server tracks participants (no roles logic beyond Host/Participant yet).
 
-- [ ] P1-T1 `utils/roomCode.ts`: generate 6-char code from unambiguous alphabet + collision check
-- [ ] P1-T2 `Participant` class (`userId`, `clientId`, `socketId`, `username`, `role`, `connected`)
-- [ ] P1-T3 `Room` class: participants map, `join()`, `leave()`, `getParticipantBySocket()`, `toSnapshot()`, `getParticipantList()`
-- [ ] P1-T4 `RoomManager` class: `createRoom()`, `getRoom()`, `deleteRoom()`, empty-room cleanup timer (10 min)
-- [ ] P1-T5 `validation/schemas.ts`: zod schemas for `create_room`, `join_room`, `leave_room` (username 2–20 chars, roomId format)
-- [ ] P1-T6 `MessageHandler` skeleton: registers handlers per socket, standard ack helper `{ ok, code, message }`
-- [ ] P1-T7 Handler `create_room` → creator becomes **Host**; socket joins Socket.IO room; ack with `roomId, userId, role, state`
-- [ ] P1-T8 Handler `join_room` → Participant by default; send `room_state` to joiner; broadcast `user_joined`; errors `ROOM_NOT_FOUND`, `ROOM_FULL`
-- [ ] P1-T9 Handler `leave_room` + Socket.IO `disconnect` handling → broadcast `user_left`
-- [ ] P1-T10 Handle `clientId` reuse on reconnect (restore same participant/role — basic version, grace period comes in Phase 7)
-- [ ] P1-T11 Unit tests for `Room` (join, leave, snapshot) and `roomCode`
+- [x] P1-T1 `utils/roomCode.ts`: generate 6-char code from unambiguous alphabet + collision check
+- [x] P1-T2 `Participant` class (`userId`, `clientId`, `socketId`, `username`, `role`, `connected`)
+- [x] P1-T3 `Room` class: participants map, `join()`, `leave()`, `getParticipantBySocket()`, `toSnapshot()`, `getParticipantList()`
+- [x] P1-T4 `RoomManager` class: `createRoom()`, `getRoom()`, `deleteRoom()`, empty-room cleanup timer (10 min)
+- [x] P1-T5 `validation/schemas.ts`: zod schemas for `create_room`, `join_room`, `leave_room` (username 2–20 chars, roomId format)
+- [x] P1-T6 `MessageHandler` skeleton: registers handlers per socket, standard ack helper `{ ok, code, message }`
+- [x] P1-T7 Handler `create_room` → creator becomes **Host**; socket joins Socket.IO room; ack with `roomId, userId, role, state`
+- [x] P1-T8 Handler `join_room` → Participant by default; send `room_state` to joiner; broadcast `user_joined`; errors `ROOM_NOT_FOUND`, `ROOM_FULL`
+- [x] P1-T9 Handler `leave_room` + Socket.IO `disconnect` handling → broadcast `user_left`
+- [x] P1-T10 Handle `clientId` reuse on reconnect (restore same participant/role — basic version, grace period comes in Phase 7)
+- [x] P1-T11 Unit tests for `Room` (join, leave, snapshot) and `roomCode`
 
 **DoD:** with two `socket.io-client` scripts (or a test), one creates a room, the other joins with the code, both receive correct `participants`, and leaving broadcasts `user_left`.
 

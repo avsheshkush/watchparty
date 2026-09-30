@@ -17,6 +17,9 @@ function getClientDistPath(): string {
   return candidate1;
 }
 
+import { RoomManager } from "./rooms/RoomManager";
+import { MessageHandler } from "./handlers/MessageHandler";
+
 const app = express();
 const server = http.createServer(app);
 
@@ -60,9 +63,15 @@ export const io = new SocketIOServer(server, {
   },
 });
 
-// Hello-world Ping-Pong & Smoke test socket handling
+export const roomManager = new RoomManager();
+export const messageHandler = new MessageHandler(io, roomManager);
+
+// Socket connection lifecycle & handler registration
 io.on("connection", (socket) => {
   console.log(`[Socket.IO] Client connected: ${socket.id}`);
+
+  // Register domain event handlers
+  messageHandler.register(socket);
 
   socket.on("ping", (data: unknown, callback?: (res: unknown) => void) => {
     const response = {
