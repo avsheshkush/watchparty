@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useRoom } from "../context/RoomContext";
 import { useSocket } from "../context/SocketContext";
 import { ShareRoom } from "./ShareRoom";
@@ -6,6 +6,8 @@ import { ParticipantList } from "./ParticipantList";
 import { VideoPlayer } from "./VideoPlayer";
 import { RequestQueue } from "./RequestQueue";
 import { RequestModal } from "./RequestModal";
+import { ReactionPicker } from "./ReactionPicker";
+import { ChatPanel } from "./ChatPanel";
 
 interface RoomPageProps {
   onRequestVideoChange?: (url: string) => void;
@@ -13,8 +15,9 @@ interface RoomPageProps {
 }
 
 export const RoomPage: React.FC<RoomPageProps> = ({ onRequestVideoChange, onRequestAction }) => {
-  const { roomId, you, leaveRoom } = useRoom();
+  const { roomId, you, participants, leaveRoom } = useRoom();
   const { isConnected } = useSocket();
+  const [activeSidebarTab, setActiveSidebarTab] = useState<"participants" | "chat">("chat");
 
   if (!roomId) return null;
 
@@ -90,7 +93,7 @@ export const RoomPage: React.FC<RoomPageProps> = ({ onRequestVideoChange, onRequ
           alignItems: "start",
         }}
       >
-        {/* Left Column: Video Area, Requests, & Custom Controls */}
+        {/* Left Column: Video Area, Requests, Reactions & Custom Controls */}
         <section style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           {/* Request Queue for Host/Moderator */}
           {isPrivileged && <RequestQueue />}
@@ -100,7 +103,7 @@ export const RoomPage: React.FC<RoomPageProps> = ({ onRequestVideoChange, onRequ
             onRequestAction={onRequestAction}
           />
 
-          {/* User Status Bar & Request Trigger for Participants */}
+          {/* User Status Bar, Quick Reactions & Request Trigger */}
           <div
             className="glass-panel"
             style={{
@@ -109,12 +112,17 @@ export const RoomPage: React.FC<RoomPageProps> = ({ onRequestVideoChange, onRequ
               justifyContent: "space-between",
               alignItems: "center",
               flexWrap: "wrap",
-              gap: "0.75rem",
+              gap: "1rem",
             }}
           >
-            <div>
-              <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", textTransform: "uppercase" }}>Signed in as</div>
-              <div style={{ fontWeight: 700, fontSize: "1rem" }}>{you?.username || "Guest"}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap" }}>
+              <div>
+                <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", textTransform: "uppercase" }}>Signed in as</div>
+                <div style={{ fontWeight: 700, fontSize: "1rem" }}>{you?.username || "Guest"}</div>
+              </div>
+
+              {/* Quick Reactions Bar */}
+              <ReactionPicker />
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
@@ -130,9 +138,46 @@ export const RoomPage: React.FC<RoomPageProps> = ({ onRequestVideoChange, onRequ
           </div>
         </section>
 
-        {/* Right Column: Participant List */}
-        <aside style={{ height: "calc(100vh - 120px)", position: "sticky", top: "80px" }}>
-          <ParticipantList />
+        {/* Right Column: Sidebar (Tabs for Participants vs Chat) */}
+        <aside
+          style={{
+            height: "calc(100vh - 120px)",
+            position: "sticky",
+            top: "80px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "0.5rem",
+          }}
+        >
+          {/* Sidebar Tab Switcher */}
+          <div
+            className="glass-panel"
+            style={{
+              display: "flex",
+              padding: "0.25rem",
+              borderRadius: "var(--radius-md)",
+            }}
+          >
+            <button
+              type="button"
+              className={`chat-tab-btn ${activeSidebarTab === "chat" ? "active" : ""}`}
+              onClick={() => setActiveSidebarTab("chat")}
+            >
+              <span>💬 Chat</span>
+            </button>
+            <button
+              type="button"
+              className={`chat-tab-btn ${activeSidebarTab === "participants" ? "active" : ""}`}
+              onClick={() => setActiveSidebarTab("participants")}
+            >
+              <span>👥 People ({participants.length})</span>
+            </button>
+          </div>
+
+          {/* Active Tab Content */}
+          <div style={{ flex: 1, minHeight: 0 }}>
+            {activeSidebarTab === "chat" ? <ChatPanel /> : <ParticipantList />}
+          </div>
         </aside>
       </main>
     </div>

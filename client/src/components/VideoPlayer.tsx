@@ -4,6 +4,7 @@ import { useRoom } from "../context/RoomContext";
 import { useSocket } from "../context/SocketContext";
 import { PlaybackControls } from "./PlaybackControls";
 import { VideoUrlForm } from "./VideoUrlForm";
+import { FloatingReactions } from "./FloatingReactions";
 
 interface VideoPlayerProps {
   onRequestVideoChange?: (url: string) => void;
@@ -133,6 +134,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ onRequestVideoChange, 
             pointerEvents: "none", // Prevent native hover tooltips
           }}
         />
+
+        {/* Floating Reactions Overlay */}
+        <FloatingReactions />
 
         {/* Transparent Overlay (SPEC §7): Blocks all native player mouse clicks */}
         <div

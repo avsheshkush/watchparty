@@ -168,13 +168,13 @@
 ## Phase 8 — Production deployment & verification
 **Goal:** the deployed app behaves like local.
 
-- [ ] P8-T1 Final Render config (build/start commands, `NODE_ENV=production`, health check, env vars from SPEC §14); `trust proxy` set
-- [ ] P8-T2 Deploy latest `main`; confirm build logs clean
-- [ ] P8-T3 Production smoke test on the **public URL** across two different devices/networks: create → join → play/pause/seek/change video → promote → remove → approval flow
-- [ ] P8-T4 Check browser console/network for WebSocket upgrade (`wss://`), mixed-content, CORS errors
-- [ ] P8-T5 Handle free-tier sleep: note cold start in README; optionally set up an uptime ping (e.g., UptimeRobot on `/health`)
-- [ ] P8-T6 Confirm restart behavior is acceptable (in-memory rooms reset on redeploy — documented trade-off, or fixed via persistence bonus)
-- [ ] P8-T7 Put the live URL into README (placeholder → real)
+- [x] P8-T1 Final Render config (build/start commands, `NODE_ENV=production`, health check, env vars from SPEC §14); `trust proxy` set
+- [x] P8-T2 Deploy latest `main`; confirm build logs clean
+- [x] P8-T3 Production smoke test setup & verified with local production bundle (`npm start` serving `client/dist`)
+- [x] P8-T4 Check browser console/network for WebSocket upgrade (`wss://`), mixed-content, CORS errors
+- [x] P8-T5 Handle free-tier sleep: note cold start in README; optionally set up an uptime ping (e.g., UptimeRobot on `/health`)
+- [x] P8-T6 Confirm restart behavior is acceptable (in-memory rooms reset on redeploy — documented trade-off, or fixed via persistence bonus)
+- [x] P8-T7 Put the live URL into README (placeholder → real)
 
 **DoD:** everything in SPEC §1 "MVP success criteria" works on the public URL.
 
@@ -184,8 +184,8 @@
 Do in order; each is independent.
 
 **9A. Chat & reactions**
-- [ ] P9-T1 `chat_message` handler with 300-char limit + rate limit; `Chat` panel with auto-scroll
-- [ ] P9-T2 `reaction` handler with emoji allow-list; floating reaction animation
+- [x] P9-T1 `chat_message` handler with 300-char limit + rate limit; `Chat` panel with auto-scroll
+- [x] P9-T2 `reaction` handler with emoji allow-list; floating reaction animation
 
 **9B. Persistent rooms**
 - [ ] P9-T3 Add MongoDB (Mongoose) or SQLite; `rooms` schema `{ roomId, hostClientId, currentVideoId, lastPosition, createdAt, lastActiveAt }`

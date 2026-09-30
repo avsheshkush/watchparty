@@ -99,6 +99,26 @@ export const resolveRequestSchema = z
   })
   .strict();
 
+export const chatMessageSchema = z
+  .object({
+    text: z
+      .string()
+      .trim()
+      .min(1, "Message cannot be empty")
+      .max(300, "Message cannot exceed 300 characters"),
+  })
+  .strict();
+
+export const ALLOWED_EMOJIS = ["👍", "❤️", "😂", "😮", "🔥", "👏"] as const;
+
+export const reactionSchema = z
+  .object({
+    emoji: z.enum(ALLOWED_EMOJIS, {
+      errorMap: () => ({ message: "Emoji must be one of: 👍, ❤️, 😂, 😮, 🔥, 👏" }),
+    }),
+  })
+  .strict();
+
 export type CreateRoomInput = z.infer<typeof createRoomSchema>;
 export type JoinRoomInput = z.infer<typeof joinRoomSchema>;
 export type LeaveRoomInput = z.infer<typeof leaveRoomSchema>;
@@ -111,3 +131,5 @@ export type SeekInput = z.infer<typeof seekSchema>;
 export type ChangeVideoInput = z.infer<typeof changeVideoSchema>;
 export type ActionRequestInput = z.infer<typeof actionRequestSchema>;
 export type ResolveRequestInput = z.infer<typeof resolveRequestSchema>;
+export type ChatMessageInput = z.infer<typeof chatMessageSchema>;
+export type ReactionInput = z.infer<typeof reactionSchema>;
