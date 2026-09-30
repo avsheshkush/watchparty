@@ -2,6 +2,7 @@ import { Server, Socket } from "socket.io";
 import { RoomManager } from "../rooms/RoomManager";
 import { registerRoomHandlers } from "./roomHandlers";
 import { registerRoleHandlers } from "./roleHandlers";
+import { registerPlaybackHandlers } from "./playbackHandlers";
 
 export class MessageHandler {
   private io: Server;
@@ -21,5 +22,8 @@ export class MessageHandler {
 
     // Phase 2: Role handlers (assign_role, remove_participant, transfer_host)
     registerRoleHandlers(this.io, socket, this.roomManager);
+
+    // Phase 3: Playback sync handlers (play, pause, seek, change_video)
+    registerPlaybackHandlers(this.io, socket, this.roomManager);
   }
 }

@@ -54,9 +54,36 @@ export const transferHostSchema = z
   })
   .strict();
 
+export const playSchema = z
+  .object({
+    time: z.number().min(0, "Playback time cannot be negative").optional(),
+  })
+  .strict();
+
+export const pauseSchema = z.object({}).strict();
+
+export const seekSchema = z
+  .object({
+    time: z.number().min(0, "Seek time cannot be negative"),
+  })
+  .strict();
+
+export const changeVideoSchema = z
+  .object({
+    url: z.string().trim().optional(),
+    videoId: z.string().trim().optional(),
+  })
+  .refine((data) => Boolean(data.url || data.videoId), {
+    message: "Either 'url' or 'videoId' must be provided",
+  });
+
 export type CreateRoomInput = z.infer<typeof createRoomSchema>;
 export type JoinRoomInput = z.infer<typeof joinRoomSchema>;
 export type LeaveRoomInput = z.infer<typeof leaveRoomSchema>;
 export type AssignRoleInput = z.infer<typeof assignRoleSchema>;
 export type RemoveParticipantInput = z.infer<typeof removeParticipantSchema>;
 export type TransferHostInput = z.infer<typeof transferHostSchema>;
+export type PlayInput = z.infer<typeof playSchema>;
+export type PauseInput = z.infer<typeof pauseSchema>;
+export type SeekInput = z.infer<typeof seekSchema>;
+export type ChangeVideoInput = z.infer<typeof changeVideoSchema>;

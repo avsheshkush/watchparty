@@ -1,4 +1,5 @@
 import { Participant, ParticipantSnapshot } from "./Participant";
+import { VideoState, VideoStateSnapshot, SyncStatePayload } from "./VideoState";
 
 export const MAX_PARTICIPANTS = 50;
 
@@ -6,6 +7,7 @@ export interface RoomSnapshot {
   roomId: string;
   hostId: string;
   participants: ParticipantSnapshot[];
+  videoState: VideoStateSnapshot;
   createdAt: number;
 }
 
@@ -13,13 +15,16 @@ export class Room {
   public readonly roomId: string;
   public hostId: string;
   public readonly participants: Map<string, Participant>; // userId -> Participant
+  public readonly video: VideoState;
   public readonly createdAt: number;
   public lastActiveAt: number;
+  private heartbeatInterval: NodeJS.Timeout | null = null;
 
-  constructor(roomId: string, initialHost: Participant) {
+  constructor(roomId: string, initialHost: Participant, initialVideoId?: string) {
     this.roomId = roomId;
     this.hostId = initialHost.userId;
     this.participants = new Map<string, Participant>();
+    this.video = new VideoState(initialVideoId);
     this.createdAt = Date.now();
     this.lastActiveAt = Date.now();
 
@@ -205,11 +210,40 @@ export class Room {
     return !Array.from(this.participants.values()).some((p) => p.connected);
   }
 
+  /**
+   * Starts periodic sync_state heartbeat every 5s while video is playing.
+   */
+  public startHeartbeat(broadcastFn: (payload: SyncStatePayload) => void): void {
+    this.stopHeartbeat();
+    this.heartbeatInterval = setInterval(() => {
+      if (this.video.playState === "playing" && !this.isEmpty()) {
+        broadcastFn(this.video.toSyncPayload());
+      } else {
+        this.stopHeartbeat();
+      }
+    }, 5000);
+
+    if (this.heartbeatInterval.unref) {
+      this.heartbeatInterval.unref();
+    }
+  }
+
+  /**
+   * Stops the active heartbeat timer.
+   */
+  public stopHeartbeat(): void {
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      this.heartbeatInterval = null;
+    }
+  }
+
   public toSnapshot(): RoomSnapshot {
     return {
       roomId: this.roomId,
       hostId: this.hostId,
       participants: this.getParticipantList(),
+      videoState: this.video.toSnapshot(),
       createdAt: this.createdAt,
     };
   }

@@ -82,6 +82,7 @@ export function registerRoomHandlers(io: Server, socket: Socket, roomManager: Ro
           role: participant.role,
         },
         participants: room.getParticipantList(),
+        videoState: room.video.toSnapshot(),
       });
 
       // Broadcast to everyone else in the room

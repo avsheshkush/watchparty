@@ -78,14 +78,14 @@
 ## Phase 3 — Backend: playback sync
 **Goal:** server-authoritative video state and synced broadcasts.
 
-- [ ] P3-T1 `utils/youtubeId.ts`: parse watch/youtu.be/embed/shorts/bare-ID URLs; validate `^[A-Za-z0-9_-]{11}$`; unit tests
-- [ ] P3-T2 `VideoState` class: `videoId`, `playState`, `position`, `updatedAt`, `version`; `getEffectivePosition()`, `play()`, `pause()`, `seek()`, `change()`
-- [ ] P3-T3 Attach `VideoState` to `Room`; include in `room_state` snapshot (with effective position) so late joiners sync
-- [ ] P3-T4 Handlers `play`, `pause`, `seek`, `change_video` — each: zod validate → `RolePolicy` check (Host/Mod) → mutate → broadcast `sync_state { playState, currentTime, videoId, version, serverTime }`
-- [ ] P3-T5 Heartbeat: while a room is `playing`, re-broadcast `sync_state` every ~5 s (stop timer when paused/empty)
-- [ ] P3-T6 Default video for new rooms (or "no video yet" state + UI prompt)
-- [ ] P3-T7 Unit tests: effective-position math (play → wait → pause), seek while playing/paused, change video resets position, invalid time/ID rejected
-- [ ] P3-T8 Integration test: Participant `play/pause/seek/change_video` → `FORBIDDEN`, no broadcast; Moderator succeeds and all clients get `sync_state`
+- [x] P3-T1 `utils/youtubeId.ts`: parse watch/youtu.be/embed/shorts/bare-ID URLs; validate `^[A-Za-z0-9_-]{11}$`; unit tests
+- [x] P3-T2 `VideoState` class: `videoId`, `playState`, `position`, `updatedAt`, `version`; `getEffectivePosition()`, `play()`, `pause()`, `seek()`, `change()`
+- [x] P3-T3 Attach `VideoState` to `Room`; include in `room_state` snapshot (with effective position) so late joiners sync
+- [x] P3-T4 Handlers `play`, `pause`, `seek`, `change_video` — each: zod validate → `RolePolicy` check (Host/Mod) → mutate → broadcast `sync_state { playState, currentTime, videoId, version, serverTime }`
+- [x] P3-T5 Heartbeat: while a room is `playing`, re-broadcast `sync_state` every ~5 s (stop timer when paused/empty)
+- [x] P3-T6 Default video for new rooms (or "no video yet" state + UI prompt)
+- [x] P3-T7 Unit tests: effective-position math (play → wait → pause), seek while playing/paused, change video resets position, invalid time/ID rejected
+- [x] P3-T8 Integration test: Participant `play/pause/seek/change_video` → `FORBIDDEN`, no broadcast; Moderator succeeds and all clients get `sync_state`
 
 **DoD:** with 3 test clients, mod actions reach everyone; participant actions are rejected; a late joiner's snapshot has the correct position.
 
