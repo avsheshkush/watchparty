@@ -150,16 +150,16 @@
 ## Phase 7 — Hardening, edge cases & testing
 **Goal:** make it robust enough to demo without fear.
 
-- [ ] P7-T1 Reconnect grace period (30 s): on socket disconnect mark `connected=false`; restore identity/role on reconnect via `clientId`
-- [ ] P7-T2 Host succession: if Host is gone > 30 s or leaves → promote earliest Moderator else earliest Participant; broadcast `host_transferred`
-- [ ] P7-T3 Empty-room cleanup and heartbeat timer cleanup (no leaked intervals)
-- [ ] P7-T4 Per-socket rate limiter (events/sec; stricter for chat) → `RATE_LIMITED`
-- [ ] P7-T5 Global error boundary on handlers: no unhandled exception can crash the process
-- [ ] P7-T6 Removed-user blocklist by `clientId` for the room's lifetime (nice-to-have)
-- [ ] P7-T7 Duplicate-username handling; username/chat sanitization and length limits
-- [ ] P7-T8 Security pass: `helmet`, CORS restricted, no `dangerouslySetInnerHTML`, zod `.strict()` schemas
-- [ ] P7-T9 Manual QA script — 3 browsers (one on phone if possible): create/join, sync, seek spam, refresh mid-video, host leaves, kick, approval flow, bad URLs, invalid room code
-- [ ] P7-T10 Run `vitest` in CI-style (`npm test`) and fix flaky tests; add `npm run lint`
+- [x] P7-T1 Reconnect grace period (30 s): on socket disconnect mark `connected=false`; restore identity/role on reconnect via `clientId`
+- [x] P7-T2 Host succession: if Host is gone > 30 s or leaves → promote earliest Moderator else earliest Participant; broadcast `host_transferred`
+- [x] P7-T3 Empty-room cleanup and heartbeat timer cleanup (no leaked intervals)
+- [x] P7-T4 Per-socket rate limiter (events/sec; stricter for chat) → `RATE_LIMITED`
+- [x] P7-T5 Global error boundary on handlers: no unhandled exception can crash the process
+- [x] P7-T6 Removed-user blocklist by `clientId` for the room's lifetime (nice-to-have)
+- [x] P7-T7 Duplicate-username handling; username/chat sanitization and length limits
+- [x] P7-T8 Security pass: `helmet`, CORS restricted, no `dangerouslySetInnerHTML`, zod `.strict()` schemas
+- [x] P7-T9 Manual QA script — 3 browsers (one on phone if possible): create/join, sync, seek spam, refresh mid-video, host leaves, kick, approval flow, bad URLs, invalid room code
+- [x] P7-T10 Run `vitest` in CI-style (`npm test`) and fix flaky tests; add `npm run lint`
 
 **DoD:** the manual QA checklist passes with no crashes; tests green.
 

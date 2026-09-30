@@ -69,6 +69,10 @@ export function registerRoomHandlers(io: Server, socket: Socket, roomManager: Ro
           ack?.(errorAck("ROOM_FULL", "Room is at maximum capacity (50 participants)"));
           return;
         }
+        if (err instanceof Error && err.message === "BLOCKED_FROM_ROOM") {
+          ack?.(errorAck("FORBIDDEN", "You have been removed from this room by the host"));
+          return;
+        }
         throw err;
       }
 
@@ -83,6 +87,7 @@ export function registerRoomHandlers(io: Server, socket: Socket, roomManager: Ro
         },
         participants: room.getParticipantList(),
         videoState: room.video.toSnapshot(),
+        pendingRequests: room.getPendingRequests(),
       });
 
       // Broadcast to everyone else in the room
@@ -97,6 +102,7 @@ export function registerRoomHandlers(io: Server, socket: Socket, roomManager: Ro
         successAck({
           roomId: room.roomId,
           userId: participant.userId,
+          username: participant.username,
           role: participant.role,
         })
       );
@@ -127,8 +133,21 @@ export function registerRoomHandlers(io: Server, socket: Socket, roomManager: Ro
         return;
       }
 
+      const wasHost = participant.userId === room.hostId;
       room.leave(participant.userId);
       socket.leave(room.roomId);
+
+      // If host left, trigger immediate succession per SPEC §12
+      if (wasHost) {
+        const succession = room.performHostSuccession();
+        if (succession) {
+          io.to(room.roomId).emit("host_transferred", {
+            oldHostId: succession.oldHostId,
+            newHostId: succession.newHostId,
+            participants: room.getParticipantList(),
+          });
+        }
+      }
 
       io.to(room.roomId).emit("user_left", {
         username: participant.username,
@@ -149,8 +168,18 @@ export function registerRoomHandlers(io: Server, socket: Socket, roomManager: Ro
     if (!found) return;
 
     const { room, participant } = found;
-    // For Phase 1, we mark as disconnected and broadcast updated list
     participant.disconnect();
+
+    // If host disconnected, schedule 30-second succession grace period per SPEC §12
+    if (participant.userId === room.hostId) {
+      room.scheduleHostSuccession((oldHostId, newHostId) => {
+        io.to(room.roomId).emit("host_transferred", {
+          oldHostId,
+          newHostId,
+          participants: room.getParticipantList(),
+        });
+      });
+    }
 
     io.to(room.roomId).emit("user_left", {
       username: participant.username,

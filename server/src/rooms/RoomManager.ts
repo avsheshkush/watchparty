@@ -54,7 +54,13 @@ export class RoomManager {
    * Deletes a room manually.
    */
   public deleteRoom(roomId: string): boolean {
-    return this.rooms.delete(normalizeRoomCode(roomId));
+    const normalized = normalizeRoomCode(roomId);
+    const room = this.rooms.get(normalized);
+    if (room) {
+      room.destroy();
+      return this.rooms.delete(normalized);
+    }
+    return false;
   }
 
   /**
@@ -78,6 +84,7 @@ export class RoomManager {
     for (const [roomId, room] of this.rooms.entries()) {
       if (room.isEmpty() && now - room.lastActiveAt > EMPTY_ROOM_TTL_MS) {
         console.log(`[RoomManager] Cleaning up stale empty room: ${roomId}`);
+        room.destroy();
         this.rooms.delete(roomId);
       }
     }
@@ -91,6 +98,9 @@ export class RoomManager {
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval);
       this.cleanupInterval = null;
+    }
+    for (const room of this.rooms.values()) {
+      room.destroy();
     }
     this.rooms.clear();
   }

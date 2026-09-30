@@ -35,15 +35,18 @@ export class Room {
   public readonly participants: Map<string, Participant>; // userId -> Participant
   public readonly video: VideoState;
   public readonly pendingRequests: Map<string, PendingRequest>; // requestId -> PendingRequest
+  public readonly blockedClientIds: Set<string>;
   public readonly createdAt: number;
   public lastActiveAt: number;
   private heartbeatInterval: NodeJS.Timeout | null = null;
+  private hostDisconnectTimer: NodeJS.Timeout | null = null;
 
   constructor(roomId: string, initialHost: Participant, initialVideoId?: string) {
     this.roomId = roomId;
     this.hostId = initialHost.userId;
     this.participants = new Map<string, Participant>();
     this.pendingRequests = new Map<string, PendingRequest>();
+    this.blockedClientIds = new Set<string>();
     this.video = new VideoState(initialVideoId);
     this.createdAt = Date.now();
     this.lastActiveAt = Date.now();
@@ -59,10 +62,19 @@ export class Room {
   public join(participant: Participant): { participant: Participant; isReconnect: boolean } {
     this.touch();
 
+    // Enforce blocklist (removed users cannot rejoin room) per SPEC §12
+    if (this.blockedClientIds.has(participant.clientId)) {
+      throw new Error("BLOCKED_FROM_ROOM");
+    }
+
     // Check if clientId already exists (reconnection)
     const existing = this.getParticipantByClientId(participant.clientId);
     if (existing) {
       existing.reconnect(participant.socketId);
+      // If reconnecting participant was the host, cancel pending host succession
+      if (existing.userId === this.hostId) {
+        this.cancelHostSuccession();
+      }
       // Update username if provided
       if (participant.username && participant.username.trim().length > 0) {
         existing.username = participant.username;
@@ -73,6 +85,19 @@ export class Room {
     if (this.participants.size >= MAX_PARTICIPANTS) {
       throw new Error("ROOM_FULL");
     }
+
+    // Resolve duplicate usernames gracefully (e.g., Alice, Alice (2))
+    let finalUsername = participant.username.trim();
+    let counter = 2;
+    const isUsernameTaken = (name: string) =>
+      Array.from(this.participants.values()).some(
+        (p) => p.userId !== participant.userId && p.username.toLowerCase() === name.toLowerCase()
+      );
+
+    while (isUsernameTaken(finalUsername)) {
+      finalUsername = `${participant.username.trim()} (${counter++})`;
+    }
+    participant.username = finalUsername;
 
     this.participants.set(participant.userId, participant);
     return { participant, isReconnect: false };
@@ -132,6 +157,7 @@ export class Room {
     }
 
     this.clearRequestsForUser(targetId);
+    this.blockedClientIds.add(target.clientId);
     this.participants.delete(targetId);
     return target;
   }
@@ -157,11 +183,65 @@ export class Room {
       throw new Error("PARTICIPANT_NOT_FOUND");
     }
 
+    this.cancelHostSuccession();
     oldHost.role = "moderator";
     newHost.role = "host";
     this.hostId = targetId;
 
     return { oldHost, newHost };
+  }
+
+  /**
+   * Automatically selects and promotes the next Host when the current host leaves or disconnects.
+   * Priority: Earliest connected Moderator, else earliest connected Participant.
+   */
+  public performHostSuccession(): { oldHostId: string; newHostId: string } | null {
+    this.cancelHostSuccession();
+    const oldHostId = this.hostId;
+    const candidates = Array.from(this.participants.values()).filter(
+      (p) => p.userId !== oldHostId && p.connected
+    );
+
+    if (candidates.length === 0) {
+      return null;
+    }
+
+    // Earliest connected moderator, else earliest connected participant
+    const mods = candidates.filter((p) => p.role === "moderator").sort((a, b) => a.joinedAt - b.joinedAt);
+    const viewers = candidates.filter((p) => p.role === "participant").sort((a, b) => a.joinedAt - b.joinedAt);
+
+    const newHost = mods.length > 0 ? mods[0] : viewers[0];
+    newHost.role = "host";
+    this.hostId = newHost.userId;
+
+    return { oldHostId, newHostId: newHost.userId };
+  }
+
+  /**
+   * Schedules automatic host succession after 30s grace period if host disconnected.
+   */
+  public scheduleHostSuccession(onSuccession: (oldHostId: string, newHostId: string) => void): void {
+    this.cancelHostSuccession();
+    this.hostDisconnectTimer = setTimeout(() => {
+      const currentHost = this.getParticipant(this.hostId);
+      if (currentHost && !currentHost.connected) {
+        const result = this.performHostSuccession();
+        if (result) {
+          onSuccession(result.oldHostId, result.newHostId);
+        }
+      }
+    }, 30 * 1000);
+
+    if (this.hostDisconnectTimer.unref) {
+      this.hostDisconnectTimer.unref();
+    }
+  }
+
+  public cancelHostSuccession(): void {
+    if (this.hostDisconnectTimer) {
+      clearTimeout(this.hostDisconnectTimer);
+      this.hostDisconnectTimer = null;
+    }
   }
 
   /**
@@ -357,6 +437,17 @@ export class Room {
       clearInterval(this.heartbeatInterval);
       this.heartbeatInterval = null;
     }
+  }
+
+  /**
+   * Cleans up all intervals and timers when room is deleted.
+   */
+  public destroy(): void {
+    this.stopHeartbeat();
+    this.cancelHostSuccession();
+    this.pendingRequests.clear();
+    this.participants.clear();
+    this.blockedClientIds.clear();
   }
 
   public toSnapshot(): RoomSnapshot {
