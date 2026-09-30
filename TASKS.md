@@ -94,17 +94,17 @@
 ## Phase 4 — Frontend: foundation
 **Goal:** UI skeleton connected to the server; no video yet.
 
-- [ ] P4-T1 Router: `/` and `/room/:roomId`; 404 handling
-- [ ] P4-T2 `clientId` generation stored in `localStorage`; username persisted for convenience
-- [ ] P4-T3 `useSocket` hook / context: single socket instance, connection status, reconnect handling, typed events (share event types via a `shared/` types file or copy)
-- [ ] P4-T4 Landing page: **Create room** (username) and **Join room** (username + code) with validation and error display
-- [ ] P4-T5 Deep link `/room/ABC123`: if no username, show name gate then auto-join
-- [ ] P4-T6 `useRoom` reducer/context handling `room_state`, `user_joined`, `user_left`, `role_assigned`, `participant_removed`, `host_transferred`, `removed`
-- [ ] P4-T7 `RoomPage` layout: video area placeholder, participant list, share panel
-- [ ] P4-T8 `ParticipantList` with role badges and "You" marker
-- [ ] P4-T9 `ShareRoom`: copy code + copy link buttons
-- [ ] P4-T10 Toasts for join/leave/kicked/errors; `ConnectionStatus` indicator
-- [ ] P4-T11 Handle being removed (redirect to landing with message)
+- [x] P4-T1 Router: `/` and `/room/:roomId`; 404 handling
+- [x] P4-T2 `clientId` generation stored in `localStorage`; username persisted for convenience
+- [x] P4-T3 `useSocket` hook / context: single socket instance, connection status, reconnect handling, typed events (share event types via a `shared/` types file or copy)
+- [x] P4-T4 Landing page: **Create room** (username) and **Join room** (username + code) with validation and error display
+- [x] P4-T5 Deep link `/room/ABC123`: if no username, show name gate then auto-join
+- [x] P4-T6 `useRoom` reducer/context handling `room_state`, `user_joined`, `user_left`, `role_assigned`, `participant_removed`, `host_transferred`, `removed`
+- [x] P4-T7 `RoomPage` layout: video area placeholder, participant list, share panel
+- [x] P4-T8 `ParticipantList` with role badges and "You" marker
+- [x] P4-T9 `ShareRoom`: copy code + copy link buttons
+- [x] P4-T10 Toasts for join/leave/kicked/errors; `ConnectionStatus` indicator
+- [x] P4-T11 Handle being removed (redirect to landing with message)
 
 **DoD:** two browser tabs can create/join a room and see each other's names and roles update live.
 
