@@ -1,6 +1,7 @@
 import { Server, Socket } from "socket.io";
 import { RoomManager } from "../rooms/RoomManager";
 import { registerRoomHandlers } from "./roomHandlers";
+import { registerRoleHandlers } from "./roleHandlers";
 
 export class MessageHandler {
   private io: Server;
@@ -17,5 +18,8 @@ export class MessageHandler {
   public register(socket: Socket): void {
     // Phase 1: Room handlers (create, join, leave, disconnect)
     registerRoomHandlers(this.io, socket, this.roomManager);
+
+    // Phase 2: Role handlers (assign_role, remove_participant, transfer_host)
+    registerRoleHandlers(this.io, socket, this.roomManager);
   }
 }

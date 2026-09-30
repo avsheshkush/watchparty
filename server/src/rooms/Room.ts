@@ -54,6 +54,88 @@ export class Room {
   }
 
   /**
+   * Promotes or demotes a participant (Host only).
+   */
+  public assignRole(actorId: string, targetId: string, role: "moderator" | "participant"): Participant {
+    this.touch();
+    const actor = this.participants.get(actorId);
+    if (!actor || actor.role !== "host") {
+      throw new Error("FORBIDDEN");
+    }
+
+    if (actorId === targetId) {
+      throw new Error("CANNOT_MODIFY_SELF");
+    }
+
+    const target = this.participants.get(targetId);
+    if (!target) {
+      throw new Error("TARGET_NOT_FOUND");
+    }
+
+    if (target.userId === this.hostId) {
+      throw new Error("CANNOT_MODIFY_HOST");
+    }
+
+    target.role = role;
+    return target;
+  }
+
+  /**
+   * Removes a participant from the room (Host only).
+   */
+  public removeParticipant(actorId: string, targetId: string): Participant {
+    this.touch();
+    const actor = this.participants.get(actorId);
+    if (!actor || actor.role !== "host") {
+      throw new Error("FORBIDDEN");
+    }
+
+    if (actorId === targetId) {
+      throw new Error("CANNOT_REMOVE_SELF");
+    }
+
+    if (targetId === this.hostId) {
+      throw new Error("CANNOT_REMOVE_HOST");
+    }
+
+    const target = this.participants.get(targetId);
+    if (!target) {
+      throw new Error("TARGET_NOT_FOUND");
+    }
+
+    this.participants.delete(targetId);
+    return target;
+  }
+
+  /**
+   * Transfers room ownership to another participant.
+   * Old host becomes Moderator.
+   */
+  public transferHost(actorId: string, targetId: string): { oldHost: Participant; newHost: Participant } {
+    this.touch();
+    if (actorId !== this.hostId) {
+      throw new Error("FORBIDDEN");
+    }
+
+    if (actorId === targetId) {
+      throw new Error("ALREADY_HOST");
+    }
+
+    const oldHost = this.participants.get(actorId);
+    const newHost = this.participants.get(targetId);
+
+    if (!oldHost || !newHost) {
+      throw new Error("PARTICIPANT_NOT_FOUND");
+    }
+
+    oldHost.role = "moderator";
+    newHost.role = "host";
+    this.hostId = targetId;
+
+    return { oldHost, newHost };
+  }
+
+  /**
    * Removes a participant completely from the room.
    */
   public leave(userId: string): Participant | null {

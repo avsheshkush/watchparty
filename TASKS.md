@@ -60,16 +60,16 @@
 ## Phase 2 — Backend: roles & permission engine
 **Goal:** the RBAC core — the part reviewers will grill you on.
 
-- [ ] P2-T1 `policy/rolePolicy.ts`: permission map + `RolePolicy.can(role, action)` exactly per the matrix in SPEC §4
-- [ ] P2-T2 Reusable guard: `requirePermission(socket, action)` returning actor or throwing a `FORBIDDEN` ack
-- [ ] P2-T3 `Room.assignRole(actorId, targetId, role)` — rules: actor is Host, target exists, target ≠ Host, role ∈ {moderator, participant}
-- [ ] P2-T4 Handler `assign_role` → broadcast `role_assigned` with fresh `participants`
-- [ ] P2-T5 `Room.removeParticipant(actorId, targetId)` — Host only, cannot remove Host/self
-- [ ] P2-T6 Handler `remove_participant` → emit `removed` to target, force-leave socket room, broadcast `participant_removed`
-- [ ] P2-T7 `Room.transferHost(actorId, targetId)` → old host becomes Moderator; handler broadcasts `host_transferred`
-- [ ] P2-T8 zod schemas for the three role events
-- [ ] P2-T9 Unit tests: full permission matrix (every role × every action), plus edge cases (assign to self, assign to Host, remove Host, non-host attempts)
-- [ ] P2-T10 Integration test: Participant emitting `assign_role`/`remove_participant` gets `FORBIDDEN` and room state is unchanged
+- [x] P2-T1 `policy/rolePolicy.ts`: permission map + `RolePolicy.can(role, action)` exactly per the matrix in SPEC §4
+- [x] P2-T2 Reusable guard: `requirePermission(socket, action)` returning actor or throwing a `FORBIDDEN` ack
+- [x] P2-T3 `Room.assignRole(actorId, targetId, role)` — rules: actor is Host, target exists, target ≠ Host, role ∈ {moderator, participant}
+- [x] P2-T4 Handler `assign_role` → broadcast `role_assigned` with fresh `participants`
+- [x] P2-T5 `Room.removeParticipant(actorId, targetId)` — Host only, cannot remove Host/self
+- [x] P2-T6 Handler `remove_participant` → emit `removed` to target, force-leave socket room, broadcast `participant_removed`
+- [x] P2-T7 `Room.transferHost(actorId, targetId)` → old host becomes Moderator; handler broadcasts `host_transferred`
+- [x] P2-T8 zod schemas for the three role events
+- [x] P2-T9 Unit tests: full permission matrix (every role × every action), plus edge cases (assign to self, assign to Host, remove Host, non-host attempts)
+- [x] P2-T10 Integration test: Participant emitting `assign_role`/`remove_participant` gets `FORBIDDEN` and room state is unchanged
 
 **DoD:** test suite proves the matrix; role changes are broadcast; Host can never be lost or duplicated.
 
