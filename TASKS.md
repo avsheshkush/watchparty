@@ -24,15 +24,15 @@
 ## Phase 0 — Setup, tooling & deploy-early smoke test
 **Goal:** repo, tooling and a *proven* public deployment path before writing features.
 
-- [ ] P0-T1 Create Git repo `watchparty` with `.gitignore` (node_modules, .env, dist) and first commit
-- [ ] P0-T2 Create monorepo layout: `client/` (Vite + React + TS), `server/` (Node + Express + TS), root `package.json` with scripts (`dev`, `build`, `start`, `test`)
-- [ ] P0-T3 Install dependencies — server: `express socket.io zod cors helmet dotenv` (+ dev: `typescript tsx vitest @types/*`); client: `socket.io-client` (+ Tailwind optional)
-- [ ] P0-T4 Configure TypeScript (strict), ESLint, Prettier for both packages
-- [ ] P0-T5 Add `.env.example` (`PORT`, `NODE_ENV`, `CLIENT_ORIGIN`) and `server/src/config.ts` to parse env
-- [ ] P0-T6 Add `AGENTS.md` / agent rules file with project rules (see bottom of this file)
-- [ ] P0-T7 Build a **hello-world**: server exposes `/health` and a Socket.IO `ping → pong`; client page has a button that pings and shows the reply
-- [ ] P0-T8 Make Express serve `client/dist` in production; confirm `npm run build && npm start` works locally
-- [ ] P0-T9 **Deploy the hello-world to Render** (build `npm install && npm run build`, start `npm start`, health check `/health`) and confirm the ping works over `wss://` on the public URL
+- [x] P0-T1 Create Git repo `watchparty` with `.gitignore` (node_modules, .env, dist) and first commit
+- [x] P0-T2 Create monorepo layout: `client/` (Vite + React + TS), `server/` (Node + Express + TS), root `package.json` with scripts (`dev`, `build`, `start`, `test`)
+- [x] P0-T3 Install dependencies — server: `express socket.io zod cors helmet dotenv` (+ dev: `typescript tsx vitest @types/*`); client: `socket.io-client` (+ Tailwind optional)
+- [x] P0-T4 Configure TypeScript (strict), ESLint, Prettier for both packages
+- [x] P0-T5 Add `.env.example` (`PORT`, `NODE_ENV`, `CLIENT_ORIGIN`) and `server/src/config.ts` to parse env
+- [x] P0-T6 Add `AGENTS.md` / agent rules file with project rules (see bottom of this file)
+- [x] P0-T7 Build a **hello-world**: server exposes `/health` and a Socket.IO `ping → pong`; client page has a button that pings and shows the reply
+- [x] P0-T8 Make Express serve `client/dist` in production; confirm `npm run build && npm start` works locally
+- [x] P0-T9 **Deploy the hello-world to Render** (build `npm install && npm run build`, start `npm start`, health check `/health`) and confirm the ping works over `wss://` on the public URL
 
 **DoD:** public URL returns the page; clicking the button gets `pong` from the deployed server.
 
