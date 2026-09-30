@@ -206,15 +206,15 @@ Do in order; each is independent.
 ## Phase 10 — Docs, demo & submission readiness
 **Goal:** everything the reviewer asked for, ready to hand in.
 
-- [ ] P10-T1 `README.md`: overview, **live URL**, features, tech stack, roles matrix, local setup (`git clone`, `npm install`, `.env`, `npm run dev`), env vars, deployment steps, trade-offs & known limitations
-- [ ] P10-T2 Architecture overview: Mermaid diagram + "how WebSockets fit the flow" (copy from SPEC §6–7) in README or `docs/ARCHITECTURE.md`
-- [ ] P10-T3 Event reference table in README (from SPEC §8)
-- [ ] P10-T4 Record a 2–3 min demo video or capture screenshots (create → join → sync → roles → kick → approval)
-- [ ] P10-T5 Code walkthrough prep: rehearse the SPEC §16 checklist aloud; open each key file (`Room.ts`, `RolePolicy.ts`, `MessageHandler.ts`, `useYouTubePlayer.ts`) and explain it without notes
-- [ ] P10-T6 Prepare a list of "issues I ran into & how I fixed them" (autoplay policy, seek detection, echo loops, host succession, Render sleep)
-- [ ] P10-T7 Repo hygiene: remove dead code/console logs, no secrets committed, meaningful commit history, `.env.example` present
-- [ ] P10-T8 Final check: fresh clone → install → run works from README steps alone; live URL opens and works
-- [ ] P10-T9 Submit: repo link + live URL (+ demo link)
+- [x] P10-T1 `README.md`: overview, **live URL**, features, tech stack, roles matrix, local setup (`git clone`, `npm install`, `.env`, `npm run dev`), env vars, deployment steps, trade-offs & known limitations
+- [x] P10-T2 Architecture overview: Mermaid diagram + "how WebSockets fit the flow" (copy from SPEC §6–7) in README or `docs/ARCHITECTURE.md`
+- [x] P10-T3 Event reference table in README (from SPEC §8)
+- [x] P10-T4 Record a 2–3 min demo video or capture screenshots (create → join → sync → roles → kick → approval)
+- [x] P10-T5 Code walkthrough prep: rehearse the SPEC §16 checklist aloud; open each key file (`Room.ts`, `RolePolicy.ts`, `MessageHandler.ts`, `useYouTubePlayer.ts`) and explain it without notes
+- [x] P10-T6 Prepare a list of "issues I ran into & how I fixed them" (autoplay policy, seek detection, echo loops, host succession, Render sleep)
+- [x] P10-T7 Repo hygiene: remove dead code/console logs, no secrets committed, meaningful commit history, `.env.example` present
+- [x] P10-T8 Final check: fresh clone → install → run works from README steps alone; live URL opens and works
+- [x] P10-T9 Submit: repo link + live URL (+ demo link)
 
 **DoD:** a stranger can clone, run, and understand the project from the README; you can explain every file.
 
