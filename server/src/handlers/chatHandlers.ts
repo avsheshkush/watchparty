@@ -26,7 +26,8 @@ export function registerChatHandlers(
   io: Server,
   socket: Socket,
   roomManager: RoomManager,
-  chatRateLimiter: SocketRateLimiter
+  chatRateLimiter: SocketRateLimiter,
+  reactionRateLimiter?: SocketRateLimiter
 ): void {
   // CHAT MESSAGE
   socket.on("chat_message", (payload: unknown, ack?: AckCallback) => {
@@ -77,6 +78,11 @@ export function registerChatHandlers(
       }
 
       const { room, participant } = found;
+
+      if (reactionRateLimiter && !reactionRateLimiter.allow(socket.id)) {
+        ack?.(errorAck("RATE_LIMITED", "You are reacting too quickly. Please slow down."));
+        return;
+      }
 
       const parsed = reactionSchema.safeParse(payload);
       if (!parsed.success) {

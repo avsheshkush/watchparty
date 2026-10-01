@@ -1,10 +1,27 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import type { VideoState, SyncStatePayload } from "../types";
+import { useSocket } from "../context/SocketContext";
+
+export interface YTPlayerInstance {
+  playVideo(): void;
+  pauseVideo(): void;
+  seekTo(seconds: number, allowSeekAhead?: boolean): void;
+  getCurrentTime(): number;
+  getDuration(): number;
+  mute(): void;
+  unMute(): void;
+  setVolume(volume: number): void;
+  loadVideoById(options: { videoId: string; startSeconds?: number }): void;
+  cueVideoById(options: { videoId: string; startSeconds?: number }): void;
+  destroy(): void;
+}
 
 // YouTube Player API typings
 declare global {
   interface Window {
-    YT: any;
+    YT: {
+      Player: new (elementId: string, config: unknown) => YTPlayerInstance;
+    };
     onYouTubeIframeAPIReady: (() => void) | undefined;
   }
 }
@@ -22,7 +39,8 @@ export function useYouTubePlayer({
   onPlayerReady,
   onError,
 }: UseYouTubePlayerProps) {
-  const playerRef = useRef<any>(null);
+  const { getServerNow } = useSocket();
+  const playerRef = useRef<YTPlayerInstance | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -139,24 +157,33 @@ export function useYouTubePlayer({
 
       isApplyingRemoteRef.current = true;
 
-      // 1. Video change check
+      // 1. Video change check: use cueVideoById when paused to prevent unwanted autoplay
       if (state.videoId && state.videoId !== activeVideoIdRef.current) {
         activeVideoIdRef.current = state.videoId;
-        if (typeof playerRef.current.loadVideoById === "function") {
-          playerRef.current.loadVideoById({
-            videoId: state.videoId,
-            startSeconds: state.currentTime || 0,
-          });
+        if (playerRef.current) {
+          if (state.playState === "playing") {
+            playerRef.current.loadVideoById({
+              videoId: state.videoId,
+              startSeconds: state.currentTime || 0,
+            });
+          } else {
+            playerRef.current.cueVideoById({
+              videoId: state.videoId,
+              startSeconds: state.currentTime || 0,
+            });
+          }
         }
       }
 
-      // 2. Compute expected position
+      // 2. Compute expected position with clock-calibrated server time
       let expectedPosition = state.currentTime;
+      const nowServer = getServerNow ? getServerNow() : Date.now();
+
       if ("updatedAt" in state && state.playState === "playing") {
-        const elapsed = Math.max(0, (Date.now() - state.updatedAt) / 1000);
+        const elapsed = Math.max(0, (nowServer - state.updatedAt) / 1000);
         expectedPosition = state.position + elapsed;
       } else if ("serverTime" in state && state.playState === "playing") {
-        const elapsed = Math.max(0, (Date.now() - state.serverTime) / 1000);
+        const elapsed = Math.max(0, (nowServer - state.serverTime) / 1000);
         expectedPosition = state.currentTime + elapsed;
       }
 
@@ -190,7 +217,7 @@ export function useYouTubePlayer({
         isApplyingRemoteRef.current = false;
       }, 400);
     },
-    [isReady]
+    [isReady, getServerNow]
   );
 
   const startPlaybackGesture = useCallback(() => {

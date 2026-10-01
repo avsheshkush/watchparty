@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useRef } from "react";
+import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 
 interface AckResponse<T = unknown> {
@@ -13,6 +13,7 @@ interface SocketContextValue {
   isConnected: boolean;
   socketId: string;
   emitWithAck: <T = unknown>(event: string, payload: unknown) => Promise<T>;
+  getServerNow: () => number;
 }
 
 const SocketContext = createContext<SocketContextValue | null>(null);
@@ -26,6 +27,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [socketId, setSocketId] = useState<string>("");
   const socketRef = useRef<Socket | null>(null);
+  const clockOffsetRef = useRef<number>(0);
 
   useEffect(() => {
     const s: Socket = io(SERVER_URL, {
@@ -39,6 +41,17 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     s.on("connect", () => {
       setIsConnected(true);
       setSocketId(s.id || "");
+
+      // Calibrate client-server clock offset
+      const t0 = Date.now();
+      s.emit("ping", {}, (res: any) => {
+        const t1 = Date.now();
+        if (res && typeof res.serverTime === "number") {
+          const rtt = Math.max(0, t1 - t0);
+          const estimatedServerTime = res.serverTime + rtt / 2;
+          clockOffsetRef.current = estimatedServerTime - t1;
+        }
+      });
     });
 
     s.on("disconnect", () => {
@@ -51,6 +64,10 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return () => {
       s.disconnect();
     };
+  }, []);
+
+  const getServerNow = useCallback(() => {
+    return Date.now() + clockOffsetRef.current;
   }, []);
 
   const emitWithAck = <T = unknown,>(event: string, payload: unknown): Promise<T> => {
@@ -77,7 +94,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   return (
-    <SocketContext.Provider value={{ socket, isConnected, socketId, emitWithAck }}>
+    <SocketContext.Provider value={{ socket, isConnected, socketId, emitWithAck, getServerNow }}>
       {children}
     </SocketContext.Provider>
   );

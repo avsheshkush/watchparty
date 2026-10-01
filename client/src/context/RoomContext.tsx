@@ -183,10 +183,20 @@ export const RoomProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
     };
 
+function formatActionLabel(type?: string): string {
+  if (!type) return "action";
+  switch (type) {
+    case "change_video":
+      return "change video";
+    default:
+      return type.replace(/_/g, " ");
+  }
+}
+
     // Request created (Host + Mods receive this)
     const handleRequestCreated = (request: PendingRequest) => {
       setPendingRequests((prev) => [...prev.filter((r) => r.requestId !== request.requestId), request]);
-      addToast("info", `New Request: ${request.username} wants to ${request.type.replace("_", " ")}`);
+      addToast("info", `New Request: ${request.username} wants to ${formatActionLabel(request.type)}`);
     };
 
     // Request resolved
@@ -199,10 +209,11 @@ export const RoomProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setPendingRequests((prev) => prev.filter((r) => r.requestId !== data.requestId));
       setYou((currentYou) => {
         if (currentYou && currentYou.userId === data.fromUserId) {
+          const actionText = formatActionLabel(data.actionType);
           if (data.approved) {
-            addToast("success", `Your ${data.actionType?.replace("_", " ") || "action"} request was approved!`);
+            addToast("success", `Your ${actionText} request was approved!`);
           } else {
-            addToast("error", `Your ${data.actionType?.replace("_", " ") || "action"} request was declined.`);
+            addToast("error", `Your ${actionText} request was declined.`);
           }
         }
         return currentYou;

@@ -13,17 +13,20 @@ export class MessageHandler {
   private roomManager: RoomManager;
   public readonly rateLimiter: SocketRateLimiter;
   public readonly chatRateLimiter: SocketRateLimiter;
+  public readonly reactionRateLimiter: SocketRateLimiter;
 
   constructor(
     io: Server,
     roomManager: RoomManager,
     rateLimiter?: SocketRateLimiter,
-    chatRateLimiter?: SocketRateLimiter
+    chatRateLimiter?: SocketRateLimiter,
+    reactionRateLimiter?: SocketRateLimiter
   ) {
     this.io = io;
     this.roomManager = roomManager;
     this.rateLimiter = rateLimiter || new SocketRateLimiter(20, 10);
     this.chatRateLimiter = chatRateLimiter || new SocketRateLimiter(5, 1);
+    this.reactionRateLimiter = reactionRateLimiter || new SocketRateLimiter(6, 2);
   }
 
   /**
@@ -52,6 +55,7 @@ export class MessageHandler {
     socket.on("disconnect", () => {
       this.rateLimiter.remove(socket.id);
       this.chatRateLimiter.remove(socket.id);
+      this.reactionRateLimiter.remove(socket.id);
     });
 
     // Phase 1: Room handlers (create, join, leave, disconnect)
@@ -67,6 +71,6 @@ export class MessageHandler {
     registerRequestHandlers(this.io, socket, this.roomManager);
 
     // Phase 9: Chat & Reactions handlers
-    registerChatHandlers(this.io, socket, this.roomManager, this.chatRateLimiter);
+    registerChatHandlers(this.io, socket, this.roomManager, this.chatRateLimiter, this.reactionRateLimiter);
   }
 }

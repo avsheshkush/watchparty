@@ -2,7 +2,7 @@ import React from "react";
 import { useRoom } from "../context/RoomContext";
 import type { PendingRequest } from "../types";
 
-export const RequestQueue: React.FC = () => {
+export const RequestQueue: React.FC = React.memo(() => {
   const { pendingRequests, you, resolveActionRequest, addToast } = useRoom();
 
   const isPrivileged = you?.role === "host" || you?.role === "moderator";
@@ -120,4 +120,4 @@ export const RequestQueue: React.FC = () => {
       </div>
     </div>
   );
-};
+});

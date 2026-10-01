@@ -26,18 +26,45 @@ const server = http.createServer(app);
 // Essential behind reverse proxies like Render
 app.set("trust proxy", 1);
 
-// Security middleware
+// Security middleware with explicit CSP whitelist
 app.use(
   helmet({
-    contentSecurityPolicy: false, // Disabled for dev and to allow YouTube iframe embeds & inline scripts
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        frameSrc: ["'self'", "https://www.youtube.com", "https://www.youtube-nocookie.com"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "https://www.youtube.com", "https://s.ytimg.com"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        imgSrc: ["'self'", "data:", "https://i.ytimg.com", "https://img.youtube.com"],
+        connectSrc: ["'self'", "ws:", "wss:", "http:", "https:"],
+      },
+    },
     crossOriginEmbedderPolicy: false,
   })
 );
 
+// Validates request origins securely without blanket reflection
+const isOriginAllowed = (origin: string | undefined): boolean => {
+  if (!origin) return true; // Same-origin or server-to-server requests
+  if (config.nodeEnv !== "production") return true; // Allow dev origins
+  if (config.clientOrigin && origin === config.clientOrigin) return true;
+  try {
+    const parsed = new URL(origin);
+    if (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") return true;
+    if (parsed.hostname.endsWith(".onrender.com")) return true;
+  } catch {
+    return false;
+  }
+  return false;
+};
+
 // CORS setup
 app.use(
   cors({
-    origin: config.nodeEnv === "production" ? true : [config.clientOrigin, "http://localhost:5173", "http://127.0.0.1:5173"],
+    origin: (origin, callback) => {
+      callback(null, isOriginAllowed(origin));
+    },
     credentials: true,
   })
 );
@@ -57,7 +84,9 @@ app.get("/health", (_req: Request, res: Response) => {
 // Socket.IO Server configuration
 export const io = new SocketIOServer(server, {
   cors: {
-    origin: config.nodeEnv === "production" ? true : [config.clientOrigin, "http://localhost:5173", "http://127.0.0.1:5173"],
+    origin: (origin, callback) => {
+      callback(null, isOriginAllowed(origin));
+    },
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -105,6 +134,12 @@ if (config.nodeEnv === "production") {
     res.sendFile(path.join(clientDistPath, "index.html"));
   });
 }
+
+// Global Express error handler
+app.use((err: unknown, _req: Request, res: Response, _next: express.NextFunction) => {
+  console.error("[Express] Unhandled error:", err);
+  res.status(500).json({ ok: false, error: "Internal Server Error" });
+});
 
 // Start Server
 if (process.env.NODE_ENV !== "test") {

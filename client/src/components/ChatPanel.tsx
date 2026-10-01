@@ -11,7 +11,7 @@ export interface ChatMessage {
   timestamp: number;
 }
 
-export const ChatPanel: React.FC = () => {
+export const ChatPanel: React.FC = React.memo(() => {
   const { socket, isConnected } = useSocket();
   const { you, addToast } = useRoom();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -257,4 +257,4 @@ export const ChatPanel: React.FC = () => {
       </form>
     </div>
   );
-};
+});

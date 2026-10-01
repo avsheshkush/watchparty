@@ -77,6 +77,7 @@ export function registerRoomHandlers(io: Server, socket: Socket, roomManager: Ro
       }
 
       socket.join(room.roomId);
+      roomManager.bindSocket(socket.id, room.roomId, participant.userId);
 
       // Send full state to joiner
       socket.emit("room_state", {
@@ -135,6 +136,7 @@ export function registerRoomHandlers(io: Server, socket: Socket, roomManager: Ro
 
       const wasHost = participant.userId === room.hostId;
       room.leave(participant.userId);
+      roomManager.unbindSocket(socket.id);
       socket.leave(room.roomId);
 
       // If host left, trigger immediate succession per SPEC §12
@@ -165,6 +167,7 @@ export function registerRoomHandlers(io: Server, socket: Socket, roomManager: Ro
   // DISCONNECT
   socket.on("disconnect", () => {
     const found = roomManager.findBySocket(socket.id);
+    roomManager.unbindSocket(socket.id);
     if (!found) return;
 
     const { room, participant } = found;

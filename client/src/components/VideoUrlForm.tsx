@@ -7,7 +7,7 @@ interface VideoUrlFormProps {
   onRequestVideoChange?: (url: string) => void;
 }
 
-export const VideoUrlForm: React.FC<VideoUrlFormProps> = ({ canControl, onRequestVideoChange }) => {
+export const VideoUrlForm: React.FC<VideoUrlFormProps> = React.memo(({ canControl, onRequestVideoChange }) => {
   const { emitWithAck } = useSocket();
   const { addToast } = useRoom();
 
@@ -75,4 +75,4 @@ export const VideoUrlForm: React.FC<VideoUrlFormProps> = ({ canControl, onReques
       </button>
     </form>
   );
-};
+});

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useRoom } from "../context/RoomContext";
 import type { Role, Participant } from "../types";
 
-export const ParticipantList: React.FC = () => {
+export const ParticipantList: React.FC = React.memo(() => {
   const { participants, you, assignParticipantRole, removeParticipant, transferHost, addToast } = useRoom();
   const [activeMenuUserId, setActiveMenuUserId] = useState<string | null>(null);
 
@@ -234,4 +234,4 @@ export const ParticipantList: React.FC = () => {
       </div>
     </div>
   );
-};
+});
