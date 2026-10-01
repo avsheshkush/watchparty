@@ -26,21 +26,43 @@ const server = http.createServer(app);
 // Essential behind reverse proxies like Render
 app.set("trust proxy", 1);
 
-// Security middleware with explicit CSP whitelist
+// Security middleware with explicit CSP whitelist and YouTube-friendly COOP/CORP/Referrer policies
 app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        frameSrc: ["'self'", "https://www.youtube.com", "https://www.youtube-nocookie.com"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "https://www.youtube.com", "https://s.ytimg.com"],
+        frameSrc: [
+          "'self'",
+          "https://www.youtube.com",
+          "https://www.youtube-nocookie.com",
+          "https://*.youtube.com",
+          "https://*.ytimg.com",
+        ],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "https://www.youtube.com",
+          "https://s.ytimg.com",
+          "https://*.ytimg.com",
+        ],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        imgSrc: ["'self'", "data:", "https://i.ytimg.com", "https://img.youtube.com"],
+        imgSrc: [
+          "'self'",
+          "data:",
+          "https://i.ytimg.com",
+          "https://img.youtube.com",
+          "https://*.ytimg.com",
+          "https://*.youtube.com",
+        ],
         connectSrc: ["'self'", "ws:", "wss:", "http:", "https:"],
       },
     },
     crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: false,
+    crossOriginResourcePolicy: false,
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
   })
 );
 

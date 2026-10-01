@@ -51,6 +51,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ onRequestVideoChange, 
 
   // Controls actions (Privileged)
   const handlePlay = async () => {
+    if (!hasStartedGesture) {
+      startPlaybackGesture();
+    }
     if (!canControl) {
       onRequestAction?.("play");
       return;
@@ -77,6 +80,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ onRequestVideoChange, 
   };
 
   const handleSeek = async (time: number) => {
+    if (!hasStartedGesture) {
+      startPlaybackGesture();
+    }
     if (!canControl) {
       onRequestAction?.("seek", { time });
       return;
@@ -128,6 +134,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ onRequestVideoChange, 
         <div
           id="yt-player-container"
           style={{
+            position: "absolute",
+            inset: 0,
             width: "100%",
             height: "100%",
             pointerEvents: "none", // Prevent native hover tooltips
@@ -223,7 +231,15 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ onRequestVideoChange, 
 
       {/* Video URL Input Form */}
       <div className="glass-panel" style={{ padding: "0.75rem 1rem" }}>
-        <VideoUrlForm canControl={canControl} onRequestVideoChange={onRequestVideoChange} />
+        <VideoUrlForm
+          canControl={canControl}
+          onRequestVideoChange={onRequestVideoChange}
+          onVideoChangeSuccess={() => {
+            if (!hasStartedGesture) {
+              startPlaybackGesture();
+            }
+          }}
+        />
       </div>
     </div>
   );

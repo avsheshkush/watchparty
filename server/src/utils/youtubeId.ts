@@ -59,6 +59,12 @@ export function extractYouTubeId(input: string): string | null {
         if (id && YOUTUBE_ID_REGEX.test(id)) return id;
       }
 
+      // /live/ID
+      if (url.pathname.startsWith("/live/")) {
+        const id = url.pathname.split("/")[2]?.split("?")[0];
+        if (id && YOUTUBE_ID_REGEX.test(id)) return id;
+      }
+
       // /v/ID
       if (url.pathname.startsWith("/v/")) {
         const id = url.pathname.split("/")[2]?.split("?")[0];

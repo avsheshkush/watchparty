@@ -5,9 +5,10 @@ import { useRoom } from "../context/RoomContext";
 interface VideoUrlFormProps {
   canControl: boolean;
   onRequestVideoChange?: (url: string) => void;
+  onVideoChangeSuccess?: () => void;
 }
 
-export const VideoUrlForm: React.FC<VideoUrlFormProps> = React.memo(({ canControl, onRequestVideoChange }) => {
+export const VideoUrlForm: React.FC<VideoUrlFormProps> = React.memo(({ canControl, onRequestVideoChange, onVideoChangeSuccess }) => {
   const { emitWithAck } = useSocket();
   const { addToast } = useRoom();
 
@@ -23,6 +24,7 @@ export const VideoUrlForm: React.FC<VideoUrlFormProps> = React.memo(({ canContro
       // If participant, trigger request approval flow
       onRequestVideoChange?.(trimmed);
       setInputUrl("");
+      onVideoChangeSuccess?.();
       return;
     }
 
@@ -31,6 +33,7 @@ export const VideoUrlForm: React.FC<VideoUrlFormProps> = React.memo(({ canContro
       await emitWithAck("change_video", { url: trimmed });
       addToast("success", "Video changed successfully");
       setInputUrl("");
+      onVideoChangeSuccess?.();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to change video";
       addToast("error", msg);

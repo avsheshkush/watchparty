@@ -80,6 +80,7 @@ export function registerPlaybackHandlers(io: Server, socket: Socket, roomManager
 
   // CHANGE VIDEO (Host, Moderator)
   socket.on("change_video", (payload: unknown, ack?: AckCallback) => {
+    console.log("[change_video] received from socket:", socket.id, "payload:", payload);
     try {
       const parsed = changeVideoSchema.safeParse(payload);
       if (!parsed.success) {
