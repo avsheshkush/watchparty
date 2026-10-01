@@ -6,7 +6,7 @@ A production-grade, real-time synchronized YouTube watch party web application b
 
 ## 🌐 Live Demo & Deployment
 
-- **Live URL:** [https://watchparty.onrender.com](https://watchparty.onrender.com) *(Hosted on Render Web Service)*
+- **Live URL:** [https://watchparty-6yxv.onrender.com/](https://watchparty-6yxv.onrender.com/) *(Hosted on Render Web Service)*
 - **Health Check Endpoint:** `https://watchparty.onrender.com/health`
 > **Note on Render Free Tier:** The free web service spins down after 15 minutes of inactivity. If cold, initial request may take ~30–50 seconds to wake up.
 
