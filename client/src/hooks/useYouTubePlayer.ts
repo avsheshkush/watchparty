@@ -51,131 +51,13 @@ export function useYouTubePlayer({
   // Guards against echo loops when applying server-directed state changes
   const isApplyingRemoteRef = useRef(false);
   const currentVersionRef = useRef(0);
+  const initialVideoIdRef = useRef(initialVideoId);
   const activeVideoIdRef = useRef(initialVideoId);
+  const pendingStateRef = useRef<VideoState | SyncStatePayload | null>(null);
 
-  // Load YouTube IFrame API script once
-  useEffect(() => {
-    if (!window.YT) {
-      const tag = document.createElement("script");
-      tag.src = "https://www.youtube.com/iframe_api";
-      const firstScriptTag = document.getElementsByTagName("script")[0];
-      firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
-    }
-
-    const initPlayer = () => {
-      if (!window.YT || !window.YT.Player) return;
-
-      const playerContainer = document.getElementById(containerId);
-      if (!playerContainer) return;
-
-      // Clean existing iframe if any
-      playerContainer.innerHTML = "";
-      const innerDiv = document.createElement("div");
-      innerDiv.id = `${containerId}-inner`;
-      playerContainer.appendChild(innerDiv);
-
-      playerRef.current = new window.YT.Player(innerDiv.id, {
-        videoId: initialVideoId,
-        width: "100%",
-        height: "100%",
-        playerVars: {
-          autoplay: 0,
-          controls: 0,
-          disablekb: 1,
-          modestbranding: 1,
-          rel: 0,
-          fs: 0,
-          iv_load_policy: 3,
-          enablejsapi: 1,
-          origin: window.location.origin,
-          playsinline: 1,
-        },
-        events: {
-          onReady: (event: any) => {
-            setIsReady(true);
-            setDuration(event.target.getDuration() || 0);
-            onPlayerReady?.();
-          },
-          onError: (event: any) => {
-            console.warn("[YouTubePlayer] onError code:", event.data);
-            onError?.(event.data);
-          },
-        },
-      });
-    };
-
-    if (window.YT && window.YT.Player) {
-      initPlayer();
-    } else {
-      window.onYouTubeIframeAPIReady = () => {
-        initPlayer();
-      };
-    }
-
-    return () => {
-      if (playerRef.current && typeof playerRef.current.destroy === "function") {
-        playerRef.current.destroy();
-        playerRef.current = null;
-      }
-    };
-  }, [containerId, initialVideoId]);
-
-  // Polling local currentTime and duration every 250ms
-  useEffect(() => {
-    if (!isReady || !playerRef.current) return;
-
-    const interval = setInterval(() => {
-      try {
-        if (playerRef.current && typeof playerRef.current.getCurrentTime === "function") {
-          const t = playerRef.current.getCurrentTime() || 0;
-          setCurrentTime(t);
-          const d = playerRef.current.getDuration() || 0;
-          if (d > 0 && d !== duration) {
-            setDuration(d);
-          }
-        }
-      } catch {
-        // Player might be re-buffering
-      }
-    }, 250);
-
-    return () => clearInterval(interval);
-  }, [isReady, duration]);
-
-  /**
-   * Applies authoritative server state with drift correction and echo guard.
-   */
-  const applyRemoteState = useCallback(
-    (state: VideoState | SyncStatePayload) => {
-      if (!isReady || !playerRef.current) return;
-
-      // Ignore older version packets
-      if (state.version < currentVersionRef.current) {
-        return;
-      }
-      currentVersionRef.current = state.version;
-
-      isApplyingRemoteRef.current = true;
-
-      // 1. Video change check: use cueVideoById when paused to prevent unwanted autoplay
-      if (state.videoId && state.videoId !== activeVideoIdRef.current) {
-        activeVideoIdRef.current = state.videoId;
-        if (playerRef.current) {
-          if (state.playState === "playing") {
-            playerRef.current.loadVideoById({
-              videoId: state.videoId,
-              startSeconds: state.currentTime || 0,
-            });
-          } else {
-            playerRef.current.cueVideoById({
-              videoId: state.videoId,
-              startSeconds: state.currentTime || 0,
-            });
-          }
-        }
-      }
-
-      // 2. Compute expected position with clock-calibrated server time
+  // Compute expected position safely with server clock calibration
+  const computeExpectedPosition = useCallback(
+    (state: VideoState | SyncStatePayload): number => {
       let expectedPosition = state.currentTime;
       const nowServer = getServerNow ? getServerNow() : Date.now();
 
@@ -186,73 +68,275 @@ export function useYouTubePlayer({
         const elapsed = Math.max(0, (nowServer - state.serverTime) / 1000);
         expectedPosition = state.currentTime + elapsed;
       }
-
-      // 3. Drift correction: seek only if |local - expected| > 1.5 seconds
-      let localTime = 0;
-      try {
-        localTime = playerRef.current.getCurrentTime() || 0;
-      } catch {
-        localTime = 0;
-      }
-
-      const drift = Math.abs(localTime - expectedPosition);
-      if (drift > 1.5) {
-        if (typeof playerRef.current.seekTo === "function") {
-          playerRef.current.seekTo(expectedPosition, true);
-        }
-      }
-
-      // 4. PlayState check
-      if (state.playState === "playing") {
-        if (typeof playerRef.current.playVideo === "function") {
-          playerRef.current.playVideo();
-        }
-      } else {
-        if (typeof playerRef.current.pauseVideo === "function") {
-          playerRef.current.pauseVideo();
-        }
-      }
-
-      setTimeout(() => {
-        isApplyingRemoteRef.current = false;
-      }, 400);
+      return Math.max(0, expectedPosition);
     },
-    [isReady, getServerNow]
+    [getServerNow]
   );
+
+  /**
+   * Applies authoritative server state with drift correction and echo guard.
+   */
+  const applyRemoteState = useCallback(
+    (state: VideoState | SyncStatePayload) => {
+      if (!isReady || !playerRef.current) {
+        // Queue state until player fires onReady
+        pendingStateRef.current = state;
+        return;
+      }
+
+      // Ignore older version packets
+      if (state.version < currentVersionRef.current) {
+        return;
+      }
+      currentVersionRef.current = state.version;
+
+      isApplyingRemoteRef.current = true;
+
+      try {
+        const player = playerRef.current;
+        if (!player) return;
+
+        const expectedPosition = computeExpectedPosition(state);
+        const isVideoChange = Boolean(state.videoId && state.videoId !== activeVideoIdRef.current);
+
+        // 1. Video change check: use cueVideoById when paused to prevent unwanted autoplay
+        if (isVideoChange && state.videoId) {
+          activeVideoIdRef.current = state.videoId;
+          if (state.playState === "playing") {
+            if (typeof player.loadVideoById === "function") {
+              player.loadVideoById({
+                videoId: state.videoId,
+                startSeconds: expectedPosition,
+              });
+            }
+          } else {
+            if (typeof player.cueVideoById === "function") {
+              player.cueVideoById({
+                videoId: state.videoId,
+                startSeconds: expectedPosition,
+              });
+            }
+          }
+        } else {
+          // 2. Drift correction (SPEC §7): seek only if |local - expected| > 1.5 seconds on same video
+          let localTime = 0;
+          try {
+            localTime = typeof player.getCurrentTime === "function" ? player.getCurrentTime() || 0 : 0;
+          } catch {
+            localTime = 0;
+          }
+
+          const drift = Math.abs(localTime - expectedPosition);
+          if (drift > 1.5) {
+            if (typeof player.seekTo === "function") {
+              player.seekTo(expectedPosition, true);
+            }
+          }
+
+          // 3. PlayState check
+          if (state.playState === "playing") {
+            if (typeof player.playVideo === "function") {
+              player.playVideo();
+            }
+          } else {
+            if (typeof player.pauseVideo === "function") {
+              player.pauseVideo();
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("[YouTubePlayer] error applying remote state:", err);
+      } finally {
+        setTimeout(() => {
+          isApplyingRemoteRef.current = false;
+        }, 400);
+      }
+    },
+    [isReady, computeExpectedPosition]
+  );
+
+  // Initialize YouTube IFrame API and Player ONCE per container mount
+  useEffect(() => {
+    let checkInterval: ReturnType<typeof setInterval> | null = null;
+    let isDisposed = false;
+
+    // Load YouTube script if not already added
+    if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
+      const tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      const firstScriptTag = document.getElementsByTagName("script")[0];
+      firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
+    }
+
+    const initPlayer = () => {
+      if (isDisposed) return;
+      if (!window.YT || !window.YT.Player) return;
+      if (playerRef.current) return; // Player already initialized
+
+      const playerContainer = document.getElementById(containerId);
+      if (!playerContainer) return;
+
+      // Clean existing inner content
+      playerContainer.innerHTML = "";
+      const innerDiv = document.createElement("div");
+      innerDiv.id = `${containerId}-inner`;
+      innerDiv.style.width = "100%";
+      innerDiv.style.height = "100%";
+      playerContainer.appendChild(innerDiv);
+
+      try {
+        playerRef.current = new window.YT.Player(innerDiv.id, {
+          videoId: initialVideoIdRef.current,
+          width: "100%",
+          height: "100%",
+          playerVars: {
+            autoplay: 0,
+            controls: 0,
+            disablekb: 1,
+            modestbranding: 1,
+            rel: 0,
+            fs: 0,
+            iv_load_policy: 3,
+            enablejsapi: 1,
+            origin: window.location.origin,
+            playsinline: 1,
+          },
+          events: {
+            onReady: (event: any) => {
+              if (isDisposed) return;
+              setIsReady(true);
+              try {
+                setDuration(event.target.getDuration() || 0);
+              } catch {
+                // Ignore duration read error
+              }
+              onPlayerReady?.();
+
+              // If a remote state arrived while initializing, apply it immediately
+              if (pendingStateRef.current) {
+                const queued = pendingStateRef.current;
+                pendingStateRef.current = null;
+                applyRemoteState(queued);
+              }
+            },
+            onError: (event: any) => {
+              console.warn("[YouTubePlayer] onError code:", event.data);
+              onError?.(event.data);
+            },
+          },
+        });
+      } catch (err) {
+        console.error("[YouTubePlayer] Player constructor error:", err);
+      }
+    };
+
+    if (window.YT && window.YT.Player) {
+      initPlayer();
+    } else {
+      const prevCallback = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => {
+        prevCallback?.();
+        initPlayer();
+      };
+
+      // Polling fallback in case API was already ready before handler registered
+      checkInterval = setInterval(() => {
+        if (window.YT && window.YT.Player) {
+          if (checkInterval) clearInterval(checkInterval);
+          initPlayer();
+        }
+      }, 150);
+    }
+
+    return () => {
+      isDisposed = true;
+      if (checkInterval) clearInterval(checkInterval);
+      try {
+        if (playerRef.current && typeof playerRef.current.destroy === "function") {
+          playerRef.current.destroy();
+        }
+      } catch (err) {
+        console.warn("[YouTubePlayer] destroy error:", err);
+      }
+      playerRef.current = null;
+      setIsReady(false);
+    };
+  }, [containerId, onPlayerReady, onError, applyRemoteState]);
+
+  // Polling local currentTime and duration every 250ms
+  useEffect(() => {
+    if (!isReady || !playerRef.current) return;
+
+    const interval = setInterval(() => {
+      try {
+        const player = playerRef.current;
+        if (player && typeof player.getCurrentTime === "function") {
+          const t = player.getCurrentTime() || 0;
+          setCurrentTime(t);
+          const d = typeof player.getDuration === "function" ? player.getDuration() || 0 : 0;
+          if (d > 0 && d !== duration) {
+            setDuration(d);
+          }
+        }
+      } catch {
+        // Player might be re-buffering or switching videos
+      }
+    }, 250);
+
+    return () => clearInterval(interval);
+  }, [isReady, duration]);
 
   const startPlaybackGesture = useCallback(() => {
     setHasStartedGesture(true);
-    if (playerRef.current) {
-      if (typeof playerRef.current.unMute === "function") {
-        playerRef.current.unMute();
+    try {
+      if (playerRef.current) {
+        if (typeof playerRef.current.unMute === "function") {
+          playerRef.current.unMute();
+        }
+        if (typeof playerRef.current.playVideo === "function") {
+          playerRef.current.playVideo();
+        }
+        setIsMuted(false);
       }
-      setIsMuted(false);
+    } catch (err) {
+      console.warn("[YouTubePlayer] startPlaybackGesture error:", err);
     }
   }, []);
 
   const toggleMute = useCallback(() => {
     if (!playerRef.current) return;
-    if (isMuted) {
-      playerRef.current.unMute?.();
-      setIsMuted(false);
-    } else {
-      playerRef.current.mute?.();
-      setIsMuted(true);
+    try {
+      if (isMuted) {
+        playerRef.current.unMute?.();
+        setIsMuted(false);
+      } else {
+        playerRef.current.mute?.();
+        setIsMuted(true);
+      }
+    } catch (err) {
+      console.warn("[YouTubePlayer] toggleMute error:", err);
     }
   }, [isMuted]);
 
-  const changeVolume = useCallback((newVol: number) => {
-    if (!playerRef.current) return;
-    const clamped = Math.max(0, Math.min(100, newVol));
-    playerRef.current.setVolume?.(clamped);
-    setVolume(clamped);
-    if (clamped === 0) {
-      setIsMuted(true);
-    } else if (isMuted) {
-      playerRef.current.unMute?.();
-      setIsMuted(false);
-    }
-  }, [isMuted]);
+  const changeVolume = useCallback(
+    (newVol: number) => {
+      if (!playerRef.current) return;
+      const clamped = Math.max(0, Math.min(100, newVol));
+      try {
+        playerRef.current.setVolume?.(clamped);
+        setVolume(clamped);
+        if (clamped === 0) {
+          setIsMuted(true);
+        } else if (isMuted) {
+          playerRef.current.unMute?.();
+          setIsMuted(false);
+        }
+      } catch (err) {
+        console.warn("[YouTubePlayer] changeVolume error:", err);
+      }
+    },
+    [isMuted]
+  );
 
   return {
     isReady,

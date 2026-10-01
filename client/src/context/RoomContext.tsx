@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import { useSocket } from "./SocketContext";
 import type { Participant, Role, VideoState, SyncStatePayload, PendingRequest, ToastMessage } from "../types";
-import { getClientId, saveUsername } from "../utils/storage";
+import { getClientId, getSavedUsername, saveUsername } from "../utils/storage";
 
 interface YouData {
   userId: string;
@@ -17,6 +17,7 @@ interface RoomContextValue {
   pendingRequests: PendingRequest[];
   toasts: ToastMessage[];
   kickedReason: string | null;
+  isAutoJoining: boolean;
   createRoom: (username: string) => Promise<string>;
   joinRoom: (roomId: string, username: string) => Promise<void>;
   leaveRoom: () => Promise<void>;
@@ -33,7 +34,7 @@ interface RoomContextValue {
 const RoomContext = createContext<RoomContextValue | null>(null);
 
 export const RoomProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { socket, emitWithAck } = useSocket();
+  const { socket, isConnected, emitWithAck } = useSocket();
 
   const [roomId, setRoomId] = useState<string | null>(null);
   const [you, setYou] = useState<YouData | null>(null);
@@ -42,6 +43,15 @@ export const RoomProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>([]);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [kickedReason, setKickedReason] = useState<string | null>(null);
+
+  // Check if initial URL indicates an active room join attempt
+  const [isAutoJoining, setIsAutoJoining] = useState<boolean>(() => {
+    const match = window.location.pathname.match(/\/room\/([A-Za-z0-9_-]+)/i);
+    const savedUser = getSavedUsername();
+    return Boolean(match && savedUser);
+  });
+
+  const autoJoinAttemptedRef = useRef(false);
 
   const addToast = useCallback((type: ToastMessage["type"], text: string) => {
     const id = Date.now().toString(36) + Math.random().toString(36).substring(2, 5);
@@ -142,9 +152,12 @@ export const RoomProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setYou(null);
       setParticipants([]);
       setVideoState(null);
+      setIsAutoJoining(false);
+      autoJoinAttemptedRef.current = false;
       addToast("error", data.reason || "You were kicked out of the room");
       // Update URL to root
       window.history.pushState({}, "", "/");
+      window.dispatchEvent(new PopStateEvent("popstate"));
     };
 
     // Host transferred
@@ -183,15 +196,15 @@ export const RoomProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
     };
 
-function formatActionLabel(type?: string): string {
-  if (!type) return "action";
-  switch (type) {
-    case "change_video":
-      return "change video";
-    default:
-      return type.replace(/_/g, " ");
-  }
-}
+    function formatActionLabel(type?: string): string {
+      if (!type) return "action";
+      switch (type) {
+        case "change_video":
+          return "change video";
+        default:
+          return type.replace(/_/g, " ");
+      }
+    }
 
     // Request created (Host + Mods receive this)
     const handleRequestCreated = (request: PendingRequest) => {
@@ -245,59 +258,98 @@ function formatActionLabel(type?: string): string {
     };
   }, [socket, addToast]);
 
-  const createRoom = async (username: string): Promise<string> => {
-    saveUsername(username);
-    const clientId = getClientId();
+  const createRoom = useCallback(
+    async (username: string): Promise<string> => {
+      saveUsername(username);
+      const clientId = getClientId();
 
-    const data = await emitWithAck<{
-      roomId: string;
-      userId: string;
-      role: Role;
-      state: {
+      autoJoinAttemptedRef.current = true;
+      setIsAutoJoining(false);
+
+      const data = await emitWithAck<{
         roomId: string;
-        participants: Participant[];
-        videoState?: VideoState;
-      };
-    }>("create_room", { username, clientId });
+        userId: string;
+        role: Role;
+        state: {
+          roomId: string;
+          participants: Participant[];
+          videoState?: VideoState;
+        };
+      }>("create_room", { username, clientId });
 
-    setRoomId(data.roomId);
-    setYou({
-      userId: data.userId,
-      role: data.role,
-      username,
-    });
-    setParticipants(data.state?.participants || []);
-    if (data.state?.videoState) {
-      setVideoState(data.state.videoState);
+      setRoomId(data.roomId);
+      setYou({
+        userId: data.userId,
+        role: data.role,
+        username,
+      });
+      setParticipants(data.state?.participants || []);
+      if (data.state?.videoState) {
+        setVideoState(data.state.videoState);
+      }
+
+      addToast("success", `Room ${data.roomId} created! You are Host.`);
+      return data.roomId;
+    },
+    [emitWithAck, addToast]
+  );
+
+  const joinRoom = useCallback(
+    async (targetRoomId: string, username: string): Promise<void> => {
+      saveUsername(username);
+      const clientId = getClientId();
+
+      autoJoinAttemptedRef.current = true;
+
+      const data = await emitWithAck<{
+        roomId: string;
+        userId: string;
+        role: Role;
+      }>("join_room", {
+        roomId: targetRoomId.toUpperCase().trim(),
+        username,
+        clientId,
+      });
+
+      setRoomId(data.roomId);
+      setYou({
+        userId: data.userId,
+        role: data.role,
+        username,
+      });
+      setIsAutoJoining(false);
+    },
+    [emitWithAck]
+  );
+
+  // Automatic rejoin on page refresh or direct deep-link when saved username exists
+  useEffect(() => {
+    if (!socket || !isConnected) return;
+    if (autoJoinAttemptedRef.current) return;
+
+    const match = window.location.pathname.match(/\/room\/([A-Za-z0-9_-]+)/i);
+    const savedUser = getSavedUsername();
+
+    if (match && savedUser && !roomId) {
+      autoJoinAttemptedRef.current = true;
+      const targetRoom = match[1].toUpperCase().trim();
+      joinRoom(targetRoom, savedUser)
+        .catch((err: unknown) => {
+          console.warn("[RoomContext] Auto-rejoin failed:", err);
+          const msg = err instanceof Error ? err.message : "Failed to rejoin room";
+          addToast("error", msg);
+          window.history.pushState({}, "", "/");
+          window.dispatchEvent(new PopStateEvent("popstate"));
+        })
+        .finally(() => {
+          setIsAutoJoining(false);
+        });
+    } else {
+      setIsAutoJoining(false);
     }
+  }, [socket, isConnected, roomId, joinRoom, addToast]);
 
-    addToast("success", `Room ${data.roomId} created! You are Host.`);
-    return data.roomId;
-  };
-
-  const joinRoom = async (targetRoomId: string, username: string): Promise<void> => {
-    saveUsername(username);
-    const clientId = getClientId();
-
-    const data = await emitWithAck<{
-      roomId: string;
-      userId: string;
-      role: Role;
-    }>("join_room", {
-      roomId: targetRoomId.toUpperCase().trim(),
-      username,
-      clientId,
-    });
-
-    setRoomId(data.roomId);
-    setYou({
-      userId: data.userId,
-      role: data.role,
-      username,
-    });
-  };
-
-  const leaveRoom = async (): Promise<void> => {
+  const leaveRoom = useCallback(async (): Promise<void> => {
     if (roomId) {
       try {
         await emitWithAck("leave_room", { roomId });
@@ -310,33 +362,51 @@ function formatActionLabel(type?: string): string {
     setParticipants([]);
     setVideoState(null);
     setPendingRequests([]);
+    setIsAutoJoining(false);
+    autoJoinAttemptedRef.current = false;
     window.history.pushState({}, "", "/");
-  };
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  }, [roomId, emitWithAck]);
 
-  const submitActionRequest = async (
-    type: PendingRequest["type"],
-    payload: PendingRequest["payload"] = {}
-  ): Promise<void> => {
-    await emitWithAck("action_request", { type, payload });
-    addToast("info", `Request submitted: ${type.replace("_", " ")}`);
-  };
+  const submitActionRequest = useCallback(
+    async (
+      type: PendingRequest["type"],
+      payload: PendingRequest["payload"] = {}
+    ): Promise<void> => {
+      await emitWithAck("action_request", { type, payload });
+      addToast("info", `Request submitted: ${type.replace("_", " ")}`);
+    },
+    [emitWithAck, addToast]
+  );
 
-  const resolveActionRequest = async (requestId: string, approve: boolean): Promise<void> => {
-    await emitWithAck("resolve_request", { requestId, approve });
-    setPendingRequests((prev) => prev.filter((r) => r.requestId !== requestId));
-  };
+  const resolveActionRequest = useCallback(
+    async (requestId: string, approve: boolean): Promise<void> => {
+      await emitWithAck("resolve_request", { requestId, approve });
+      setPendingRequests((prev) => prev.filter((r) => r.requestId !== requestId));
+    },
+    [emitWithAck]
+  );
 
-  const assignParticipantRole = async (userId: string, role: "moderator" | "participant"): Promise<void> => {
-    await emitWithAck("assign_role", { userId, role });
-  };
+  const assignParticipantRole = useCallback(
+    async (userId: string, role: "moderator" | "participant"): Promise<void> => {
+      await emitWithAck("assign_role", { userId, role });
+    },
+    [emitWithAck]
+  );
 
-  const removeParticipant = async (userId: string): Promise<void> => {
-    await emitWithAck("remove_participant", { userId });
-  };
+  const removeParticipant = useCallback(
+    async (userId: string): Promise<void> => {
+      await emitWithAck("remove_participant", { userId });
+    },
+    [emitWithAck]
+  );
 
-  const transferHost = async (userId: string): Promise<void> => {
-    await emitWithAck("transfer_host", { userId });
-  };
+  const transferHost = useCallback(
+    async (userId: string): Promise<void> => {
+      await emitWithAck("transfer_host", { userId });
+    },
+    [emitWithAck]
+  );
 
   return (
     <RoomContext.Provider
@@ -348,6 +418,7 @@ function formatActionLabel(type?: string): string {
         pendingRequests,
         toasts,
         kickedReason,
+        isAutoJoining,
         createRoom,
         joinRoom,
         leaveRoom,

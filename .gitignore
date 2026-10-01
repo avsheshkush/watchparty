@@ -35,4 +35,5 @@ Thumbs.db
 
 # Agent configuration & skills
 .agents/
+skills-lock.json
 

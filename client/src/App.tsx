@@ -4,6 +4,7 @@ import { RoomProvider, useRoom } from "./context/RoomContext";
 import { LandingPage } from "./components/LandingPage";
 import { RoomPage } from "./components/RoomPage";
 import { ToastContainer } from "./components/ToastContainer";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 // Helper to extract room code from URL: /room/:roomId
 function getRoomCodeFromPath(): string {
@@ -12,7 +13,7 @@ function getRoomCodeFromPath(): string {
 }
 
 const MainApp: React.FC = () => {
-  const { roomId } = useRoom();
+  const { roomId, isAutoJoining } = useRoom();
   const [initialRoomCode, setInitialRoomCode] = useState<string>(() => getRoomCodeFromPath());
 
   useEffect(() => {
@@ -28,7 +29,37 @@ const MainApp: React.FC = () => {
       <div className="ambient-glow" />
       <ToastContainer />
 
-      {roomId ? (
+      {isAutoJoining ? (
+        <div
+          style={{
+            minHeight: "75vh",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "1.25rem",
+          }}
+        >
+          <div
+            style={{
+              width: "48px",
+              height: "48px",
+              borderRadius: "50%",
+              border: "3px solid rgba(245, 158, 11, 0.2)",
+              borderTopColor: "var(--accent-primary)",
+              animation: "spin 0.8s linear infinite",
+            }}
+          />
+          <div style={{ textAlign: "center" }}>
+            <h3 style={{ fontSize: "1.1rem", fontWeight: 600, color: "#f8fafc", marginBottom: "0.25rem" }}>
+              Reconnecting to Watch Party...
+            </h3>
+            <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
+              Restoring your room session and stream state
+            </p>
+          </div>
+        </div>
+      ) : roomId ? (
         <RoomPage />
       ) : (
         <LandingPage
@@ -44,11 +75,13 @@ const MainApp: React.FC = () => {
 
 export function App() {
   return (
-    <SocketProvider>
-      <RoomProvider>
-        <MainApp />
-      </RoomProvider>
-    </SocketProvider>
+    <ErrorBoundary>
+      <SocketProvider>
+        <RoomProvider>
+          <MainApp />
+        </RoomProvider>
+      </SocketProvider>
+    </ErrorBoundary>
   );
 }
 

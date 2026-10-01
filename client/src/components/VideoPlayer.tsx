@@ -19,7 +19,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ onRequestVideoChange, 
   const canControl = you?.role === "host" || you?.role === "moderator";
 
   const {
-    isReady,
     currentTime,
     duration,
     isMuted,
@@ -45,10 +44,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ onRequestVideoChange, 
 
   // Apply server authoritative state updates when received
   useEffect(() => {
-    if (videoState && isReady) {
+    if (videoState) {
       applyRemoteState(videoState);
     }
-  }, [videoState, isReady, applyRemoteState]);
+  }, [videoState, applyRemoteState]);
 
   // Controls actions (Privileged)
   const handlePlay = async () => {
