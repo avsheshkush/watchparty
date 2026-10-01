@@ -63,9 +63,7 @@ export const ParticipantList: React.FC = () => {
               padding: "0.15rem 0.5rem",
               borderRadius: "var(--radius-full)",
               fontSize: "0.7rem",
-              fontWeight: 700,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
+              fontWeight: 600,
             }}
           >
             👑 Host
@@ -78,15 +76,13 @@ export const ParticipantList: React.FC = () => {
               display: "inline-flex",
               alignItems: "center",
               gap: "0.25rem",
-              background: "rgba(139, 92, 246, 0.15)",
-              color: "#c084fc",
-              border: "1px solid rgba(139, 92, 246, 0.3)",
+              background: "rgba(96, 165, 250, 0.15)",
+              color: "#93c5fd",
+              border: "1px solid rgba(96, 165, 250, 0.3)",
               padding: "0.15rem 0.5rem",
               borderRadius: "var(--radius-full)",
               fontSize: "0.7rem",
-              fontWeight: 700,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
+              fontWeight: 600,
             }}
           >
             🛡️ Mod
@@ -102,8 +98,7 @@ export const ParticipantList: React.FC = () => {
               padding: "0.15rem 0.5rem",
               borderRadius: "var(--radius-full)",
               fontSize: "0.7rem",
-              fontWeight: 600,
-              textTransform: "uppercase",
+              fontWeight: 500,
             }}
           >
             Viewer
@@ -115,7 +110,7 @@ export const ParticipantList: React.FC = () => {
   return (
     <div className="glass-panel" style={{ padding: "1.25rem", height: "100%", display: "flex", flexDirection: "column" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-        <h3 style={{ fontSize: "1rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.5rem" }}>
+        <h3 style={{ fontSize: "0.95rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <span>👥 Party Members</span>
           <span
             style={{
@@ -147,8 +142,8 @@ export const ParticipantList: React.FC = () => {
                 gap: "0.5rem",
                 padding: "0.7rem 0.85rem",
                 borderRadius: "var(--radius-md)",
-                background: isYou ? "rgba(99, 102, 241, 0.1)" : "var(--bg-glass)",
-                border: isYou ? "1px solid rgba(99, 102, 241, 0.3)" : "1px solid var(--border-subtle)",
+                background: isYou ? "rgba(245, 158, 11, 0.08)" : "var(--bg-glass)",
+                border: isYou ? "1px solid rgba(245, 158, 11, 0.3)" : "1px solid var(--border-subtle)",
                 transition: "all 0.2s ease",
               }}
             >

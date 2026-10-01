@@ -15,7 +15,7 @@ export const ToastContainer: React.FC = () => {
       case "warning":
         return "#f59e0b";
       default:
-        return "#6366f1";
+        return "#38bdf8";
     }
   };
 

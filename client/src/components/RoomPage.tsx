@@ -51,16 +51,24 @@ export const RoomPage: React.FC<RoomPageProps> = ({ onRequestVideoChange, onRequ
         >
           {/* Logo & Status */}
           <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-              <span style={{ fontSize: "1.5rem" }}>🎬</span>
-              <span style={{ fontWeight: 800, fontSize: "1.25rem", background: "var(--accent-gradient)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                WatchParty
+            <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
+              <span style={{ fontSize: "1.4rem" }}>🎬</span>
+              <span
+                style={{
+                  fontWeight: 800,
+                  fontSize: "1.25rem",
+                  fontFamily: "var(--font-display)",
+                  color: "#f8fafc",
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                Watch<span style={{ color: "var(--accent-primary)" }}>Party</span>
               </span>
             </div>
 
             <span className={`status-pill ${isConnected ? "status-online" : "status-offline"}`}>
               <span className="status-dot" />
-              {isConnected ? "Live" : "Reconnecting..."}
+              {isConnected ? "Live sync" : "Reconnecting..."}
             </span>
           </div>
 
@@ -73,7 +81,7 @@ export const RoomPage: React.FC<RoomPageProps> = ({ onRequestVideoChange, onRequ
               className="btn-secondary"
               style={{ padding: "0.45rem 1rem", fontSize: "0.85rem", borderColor: "rgba(244, 63, 94, 0.4)", color: "#fb7185" }}
             >
-              🚪 Leave
+              Leave room
             </button>
           </div>
         </div>
@@ -117,8 +125,8 @@ export const RoomPage: React.FC<RoomPageProps> = ({ onRequestVideoChange, onRequ
           >
             <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap" }}>
               <div>
-                <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", textTransform: "uppercase" }}>Signed in as</div>
-                <div style={{ fontWeight: 700, fontSize: "1rem" }}>{you?.username || "Guest"}</div>
+                <div style={{ fontSize: "0.72rem", color: "var(--text-dim)", textTransform: "none", fontWeight: 500 }}>Signed in as</div>
+                <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--text-main)" }}>{you?.username || "Guest"}</div>
               </div>
 
               {/* Quick Reactions Bar */}
@@ -129,9 +137,9 @@ export const RoomPage: React.FC<RoomPageProps> = ({ onRequestVideoChange, onRequ
               {!isPrivileged && <RequestModal />}
 
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", textTransform: "uppercase" }}>Your Role</div>
-                <div style={{ fontWeight: 700, fontSize: "0.95rem", color: you?.role === "host" ? "#fbbf24" : you?.role === "moderator" ? "#c084fc" : "#94a3b8" }}>
-                  {you?.role === "host" ? "👑 Room Host" : you?.role === "moderator" ? "🛡️ Moderator" : "Viewer"}
+                <div style={{ fontSize: "0.72rem", color: "var(--text-dim)", textTransform: "none", fontWeight: 500 }}>Room role</div>
+                <div style={{ fontWeight: 700, fontSize: "0.92rem", color: you?.role === "host" ? "#fbbf24" : you?.role === "moderator" ? "#93c5fd" : "var(--text-muted)" }}>
+                  {you?.role === "host" ? "👑 Host" : you?.role === "moderator" ? "🛡️ Moderator" : "Viewer"}
                 </div>
               </div>
             </div>

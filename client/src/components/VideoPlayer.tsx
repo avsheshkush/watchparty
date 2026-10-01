@@ -179,27 +179,27 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ onRequestVideoChange, 
           >
             <div
               style={{
-                width: "70px",
-                height: "70px",
+                width: "72px",
+                height: "72px",
                 borderRadius: "50%",
-                background: "var(--accent-gradient)",
+                background: "var(--accent-primary)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: "2rem",
-                color: "#fff",
-                boxShadow: "0 0 30px rgba(99, 102, 241, 0.5)",
+                color: "#080b12",
+                boxShadow: "0 0 35px rgba(245, 158, 11, 0.45)",
                 marginBottom: "1rem",
-                transform: "scale(1)",
-                transition: "transform 0.2s ease",
+                paddingLeft: "4px", // optical alignment for play icon
+                transition: "transform 0.2s ease, box-shadow 0.2s ease",
               }}
             >
               ▶
             </div>
-            <h3 style={{ fontSize: "1.25rem", fontWeight: 700, marginBottom: "0.4rem" }}>
+            <h3 style={{ fontSize: "1.25rem", fontWeight: 700, fontFamily: "var(--font-display)", color: "#f8fafc", marginBottom: "0.4rem" }}>
               Click to Join Audio & Stream
             </h3>
-            <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", maxWidth: "320px" }}>
+            <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", maxWidth: "340px", lineHeight: "1.4" }}>
               Browser audio autoplay requires user interaction before unmuting.
             </p>
           </div>

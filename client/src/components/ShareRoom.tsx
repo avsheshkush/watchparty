@@ -43,16 +43,16 @@ export const ShareRoom: React.FC<ShareRoomProps> = ({ roomId }) => {
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-        <span style={{ color: "var(--text-dim)", fontSize: "0.8rem", textTransform: "uppercase", fontWeight: 600 }}>
+        <span style={{ color: "var(--text-dim)", fontSize: "0.75rem", textTransform: "none", fontWeight: 500 }}>
           Room
         </span>
         <span
           style={{
             fontFamily: "var(--font-mono)",
             fontWeight: 700,
-            fontSize: "1rem",
+            fontSize: "0.95rem",
             color: "var(--accent-primary)",
-            letterSpacing: "0.08em",
+            letterSpacing: "0.06em",
           }}
         >
           {roomId}
@@ -66,7 +66,7 @@ export const ShareRoom: React.FC<ShareRoomProps> = ({ roomId }) => {
           style={{ padding: "0.3rem 0.65rem", fontSize: "0.75rem" }}
           title="Copy room code"
         >
-          {copiedCode ? "✓ Copied" : "Copy Code"}
+          {copiedCode ? "✓ Copied" : "Copy code"}
         </button>
         <button
           onClick={copyLink}
@@ -74,7 +74,7 @@ export const ShareRoom: React.FC<ShareRoomProps> = ({ roomId }) => {
           style={{ padding: "0.3rem 0.65rem", fontSize: "0.75rem" }}
           title="Copy invite link"
         >
-          {copiedLink ? "✓ Link Copied" : "🔗 Share Link"}
+          {copiedLink ? "✓ Link copied" : "Share link"}
         </button>
       </div>
     </div>

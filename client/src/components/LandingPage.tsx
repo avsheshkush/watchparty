@@ -100,23 +100,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({ initialRoomCode = "", 
       )}
 
       {/* Main Glass Card */}
-      <div className="glass-panel" style={{ padding: "2.25rem 2rem" }}>
+      <div className="glass-panel" style={{ padding: "2.5rem 2rem" }}>
         {/* Logo / Header */}
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>🍿</div>
-          <h2
+          <div style={{ fontSize: "2.75rem", marginBottom: "0.5rem" }}>🎬</div>
+          <h1
             style={{
-              fontSize: "1.75rem",
+              fontSize: "1.85rem",
               fontWeight: 800,
-              background: "var(--accent-gradient)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
+              letterSpacing: "-0.02em",
+              color: "var(--text-main)",
             }}
           >
-            YouTube WatchParty
-          </h2>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", marginTop: "0.25rem" }}>
-            Watch videos together in perfect sync
+            Watch<span style={{ color: "var(--accent-primary)" }}>Party</span>
+          </h1>
+          <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", marginTop: "0.35rem" }}>
+            Synchronized YouTube cinema for you and your friends
           </p>
         </div>
 
@@ -126,9 +125,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ initialRoomCode = "", 
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
             gap: "0.35rem",
-            background: "rgba(0, 0, 0, 0.3)",
-            padding: "0.35rem",
+            background: "rgba(0, 0, 0, 0.4)",
+            padding: "0.3rem",
             borderRadius: "var(--radius-md)",
+            border: "1px solid var(--border-subtle)",
             marginBottom: "1.75rem",
           }}
         >
@@ -139,18 +139,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ initialRoomCode = "", 
               setError("");
             }}
             style={{
-              background: mode === "create" ? "var(--accent-gradient)" : "transparent",
-              color: mode === "create" ? "#fff" : "var(--text-muted)",
+              background: mode === "create" ? "var(--accent-primary)" : "transparent",
+              color: mode === "create" ? "#090c15" : "var(--text-muted)",
               border: "none",
               padding: "0.6rem 0",
               borderRadius: "var(--radius-sm)",
-              fontWeight: 600,
+              fontWeight: 700,
               fontSize: "0.875rem",
               cursor: "pointer",
-              transition: "all 0.2s ease",
+              transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
             }}
           >
-            Create Room
+            Create party
           </button>
           <button
             type="button"
@@ -159,18 +159,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ initialRoomCode = "", 
               setError("");
             }}
             style={{
-              background: mode === "join" ? "var(--accent-gradient)" : "transparent",
-              color: mode === "join" ? "#fff" : "var(--text-muted)",
+              background: mode === "join" ? "var(--accent-primary)" : "transparent",
+              color: mode === "join" ? "#090c15" : "var(--text-muted)",
               border: "none",
               padding: "0.6rem 0",
               borderRadius: "var(--radius-sm)",
-              fontWeight: 600,
+              fontWeight: 700,
               fontSize: "0.875rem",
               cursor: "pointer",
-              transition: "all 0.2s ease",
+              transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
             }}
           >
-            Join Room
+            Join with code
           </button>
         </div>
 
@@ -181,18 +181,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ initialRoomCode = "", 
               htmlFor="username-input"
               style={{
                 display: "block",
-                color: "var(--text-muted)",
-                fontSize: "0.8rem",
+                color: "var(--text-main)",
+                fontSize: "0.85rem",
                 fontWeight: 600,
-                textTransform: "uppercase",
-                marginBottom: "0.4rem",
+                marginBottom: "0.45rem",
               }}
             >
-              Your Name
+              Your display name
             </label>
             <input
               id="username-input"
               type="text"
+              className="input-field"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="e.g. Alex"
@@ -201,13 +201,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ initialRoomCode = "", 
               style={{
                 width: "100%",
                 padding: "0.75rem 1rem",
-                background: "rgba(255, 255, 255, 0.05)",
+                background: "rgba(255, 255, 255, 0.04)",
                 border: "1px solid var(--border-subtle)",
                 borderRadius: "var(--radius-md)",
                 color: "#fff",
-                fontSize: "1rem",
-                outline: "none",
-                transition: "border-color 0.2s ease",
+                fontSize: "0.95rem",
               }}
             />
           </div>
@@ -218,18 +216,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ initialRoomCode = "", 
                 htmlFor="room-code-input"
                 style={{
                   display: "block",
-                  color: "var(--text-muted)",
-                  fontSize: "0.8rem",
+                  color: "var(--text-main)",
+                  fontSize: "0.85rem",
                   fontWeight: 600,
-                  textTransform: "uppercase",
-                  marginBottom: "0.4rem",
+                  marginBottom: "0.45rem",
                 }}
               >
-                6-Character Room Code
+                6-character room code
               </label>
               <input
                 id="room-code-input"
                 type="text"
+                className="input-field"
                 value={roomCode}
                 onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
                 placeholder="e.g. ABC234"
@@ -238,7 +236,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ initialRoomCode = "", 
                 style={{
                   width: "100%",
                   padding: "0.75rem 1rem",
-                  background: "rgba(255, 255, 255, 0.05)",
+                  background: "rgba(255, 255, 255, 0.04)",
                   border: "1px solid var(--border-subtle)",
                   borderRadius: "var(--radius-md)",
                   color: "#fff",
@@ -246,8 +244,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ initialRoomCode = "", 
                   fontSize: "1.1rem",
                   letterSpacing: "0.1em",
                   textTransform: "uppercase",
-                  outline: "none",
-                  transition: "border-color 0.2s ease",
                 }}
               />
             </div>
@@ -259,7 +255,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ initialRoomCode = "", 
                 color: "var(--status-danger)",
                 fontSize: "0.85rem",
                 background: "rgba(244, 63, 94, 0.1)",
-                padding: "0.5rem 0.75rem",
+                padding: "0.6rem 0.85rem",
                 borderRadius: "var(--radius-sm)",
                 border: "1px solid rgba(244, 63, 94, 0.25)",
               }}
@@ -277,10 +273,33 @@ export const LandingPage: React.FC<LandingPageProps> = ({ initialRoomCode = "", 
             {isLoading
               ? "Connecting..."
               : mode === "create"
-              ? "🚀 Create Room & Become Host"
-              : "🎟️ Join Watch Party"}
+              ? "Start Watch Party"
+              : "Enter Watch Party"}
           </button>
         </form>
+
+        {/* Feature Pills */}
+        <div
+          style={{
+            marginTop: "2rem",
+            paddingTop: "1.5rem",
+            borderTop: "1px solid var(--border-subtle)",
+            display: "flex",
+            justifyContent: "center",
+            gap: "0.85rem",
+            flexWrap: "wrap",
+          }}
+        >
+          <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "0.35rem" }}>
+            <span style={{ color: "var(--accent-primary)" }}>●</span> Real-time sync
+          </span>
+          <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "0.35rem" }}>
+            <span style={{ color: "var(--accent-primary)" }}>●</span> Host controls
+          </span>
+          <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "0.35rem" }}>
+            <span style={{ color: "var(--accent-primary)" }}>●</span> Live chat
+          </span>
+        </div>
       </div>
     </div>
   );

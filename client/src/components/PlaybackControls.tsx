@@ -81,7 +81,7 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
               borderRadius: "4px",
               accentColor: canControl ? "var(--accent-primary)" : "#64748b",
               cursor: canControl ? "pointer" : "not-allowed",
-              background: `linear-gradient(to right, ${canControl ? "#6366f1" : "#475569"} ${progressPercent}%, rgba(255,255,255,0.1) ${progressPercent}%)`,
+              background: `linear-gradient(to right, ${canControl ? "#f59e0b" : "#475569"} ${progressPercent}%, rgba(255,255,255,0.1) ${progressPercent}%)`,
             }}
           />
         </div>
@@ -100,19 +100,19 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
             disabled={!canControl}
             title={!canControl ? "Only Host/Moderators can control playback" : isPlaying ? "Pause" : "Play"}
             style={{
-              background: canControl ? "var(--accent-gradient)" : "rgba(255,255,255,0.05)",
-              color: canControl ? "#fff" : "var(--text-dim)",
-              border: "none",
+              background: canControl ? "var(--accent-primary)" : "rgba(255,255,255,0.05)",
+              color: canControl ? "#090c15" : "var(--text-dim)",
+              border: canControl ? "1px solid rgba(245, 158, 11, 0.4)" : "1px solid var(--border-subtle)",
               borderRadius: "var(--radius-md)",
               padding: "0.45rem 1rem",
               fontWeight: 700,
-              fontSize: "0.9rem",
+              fontSize: "0.875rem",
               display: "flex",
               alignItems: "center",
               gap: "0.4rem",
               cursor: canControl ? "pointer" : "not-allowed",
               opacity: canControl ? 1 : 0.6,
-              transition: "all 0.2s ease",
+              transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
             }}
           >
             {isPlaying ? "⏸ Pause" : "▶ Play"}

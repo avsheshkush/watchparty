@@ -137,8 +137,8 @@ export const ChatPanel: React.FC = () => {
                 key={m.id}
                 className="chat-message-bubble"
                 style={{
-                  borderLeft: isMe ? "3px solid var(--color-primary)" : undefined,
-                  background: isMe ? "rgba(99, 102, 241, 0.08)" : undefined,
+                  borderLeft: isMe ? "3px solid var(--accent-primary)" : undefined,
+                  background: isMe ? "rgba(245, 158, 11, 0.07)" : undefined,
                 }}
               >
                 <div
@@ -154,7 +154,7 @@ export const ChatPanel: React.FC = () => {
                       style={{
                         fontWeight: 700,
                         fontSize: "0.85rem",
-                        color: isMe ? "#a5b4fc" : "var(--text-main)",
+                        color: isMe ? "#fbbf24" : "var(--text-main)",
                       }}
                     >
                       {m.username}
@@ -162,31 +162,31 @@ export const ChatPanel: React.FC = () => {
                     {m.role === "host" && (
                       <span
                         style={{
-                          fontSize: "0.65rem",
-                          fontWeight: 700,
-                          padding: "0.1rem 0.35rem",
-                          borderRadius: "4px",
-                          background: "rgba(251, 191, 36, 0.15)",
+                          fontSize: "0.68rem",
+                          fontWeight: 600,
+                          padding: "0.1rem 0.45rem",
+                          borderRadius: "var(--radius-full)",
+                          background: "rgba(245, 158, 11, 0.15)",
                           color: "#fbbf24",
-                          border: "1px solid rgba(251, 191, 36, 0.3)",
+                          border: "1px solid rgba(245, 158, 11, 0.3)",
                         }}
                       >
-                        HOST
+                        Host
                       </span>
                     )}
                     {m.role === "moderator" && (
                       <span
                         style={{
-                          fontSize: "0.65rem",
-                          fontWeight: 700,
-                          padding: "0.1rem 0.35rem",
-                          borderRadius: "4px",
-                          background: "rgba(192, 132, 252, 0.15)",
-                          color: "#c084fc",
-                          border: "1px solid rgba(192, 132, 252, 0.3)",
+                          fontSize: "0.68rem",
+                          fontWeight: 600,
+                          padding: "0.1rem 0.45rem",
+                          borderRadius: "var(--radius-full)",
+                          background: "rgba(96, 165, 250, 0.15)",
+                          color: "#93c5fd",
+                          border: "1px solid rgba(96, 165, 250, 0.3)",
                         }}
                       >
-                        MOD
+                        Mod
                       </span>
                     )}
                   </div>
@@ -194,7 +194,7 @@ export const ChatPanel: React.FC = () => {
                     {formatTime(m.timestamp)}
                   </span>
                 </div>
-                <div style={{ fontSize: "0.85rem", lineHeight: "1.4", color: "#e2e8f0" }}>
+                <div style={{ fontSize: "0.85rem", lineHeight: "1.45", color: "var(--text-main)" }}>
                   {m.text}
                 </div>
               </div>

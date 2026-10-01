@@ -52,30 +52,26 @@ export const VideoUrlForm: React.FC<VideoUrlFormProps> = ({ canControl, onReques
         type="text"
         value={inputUrl}
         onChange={(e) => setInputUrl(e.target.value)}
-        placeholder={canControl ? "Paste YouTube URL or Video ID (e.g. youtu.be/...)" : "Participants must request video changes"}
+        placeholder={canControl ? "Paste YouTube URL or Video ID (e.g. youtu.be/...)" : "Participants can propose video changes"}
         disabled={isSubmitting}
+        className="input-field"
         style={{
           flex: 1,
           padding: "0.6rem 0.9rem",
-          background: "rgba(255, 255, 255, 0.05)",
-          border: "1px solid var(--border-subtle)",
-          borderRadius: "var(--radius-md)",
-          color: "#fff",
           fontSize: "0.875rem",
-          outline: "none",
         }}
       />
       <button
         type="submit"
         className="btn-primary"
         disabled={isSubmitting || !inputUrl.trim()}
-        style={{ padding: "0.6rem 1.1rem", fontSize: "0.85rem", whiteSpace: "nowrap" }}
+        style={{ padding: "0.6rem 1.25rem", fontSize: "0.85rem", whiteSpace: "nowrap" }}
       >
         {isSubmitting
           ? "Changing..."
           : canControl
-          ? "🎬 Change Video"
-          : "📩 Propose Video"}
+          ? "Load video"
+          : "Propose video"}
       </button>
     </form>
   );

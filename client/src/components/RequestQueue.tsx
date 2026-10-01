@@ -50,12 +50,12 @@ export const RequestQueue: React.FC = () => {
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-        <h4 style={{ fontSize: "0.9rem", fontWeight: 700, color: "#fbbf24", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-          <span>🔔 Pending Participant Requests</span>
+        <h4 style={{ fontSize: "0.88rem", fontWeight: 700, color: "#fbbf24", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+          <span>🔔 Pending participant requests</span>
           <span
             style={{
               background: "#fbbf24",
-              color: "#000",
+              color: "#080b12",
               fontSize: "0.75rem",
               fontWeight: 800,
               padding: "0.1rem 0.45rem",

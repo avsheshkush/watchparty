@@ -53,7 +53,7 @@ export const RequestModal: React.FC = () => {
         }}
       >
         <span>📩</span>
-        <span>Propose Action to Host</span>
+        <span>Propose action</span>
       </button>
 
       {isOpen && (
@@ -62,8 +62,8 @@ export const RequestModal: React.FC = () => {
             position: "fixed",
             inset: 0,
             zIndex: 1000,
-            background: "rgba(0, 0, 0, 0.7)",
-            backdropFilter: "blur(8px)",
+            background: "rgba(0, 0, 0, 0.75)",
+            backdropFilter: "blur(10px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -76,13 +76,13 @@ export const RequestModal: React.FC = () => {
               maxWidth: "440px",
               width: "100%",
               padding: "1.75rem",
-              background: "rgba(16, 21, 34, 0.98)",
+              background: "rgba(18, 24, 38, 0.98)",
               border: "1px solid var(--border-subtle)",
               borderRadius: "var(--radius-lg)",
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
-              <h3 style={{ fontSize: "1.1rem", fontWeight: 700 }}>Propose Playback Change</h3>
+              <h3 style={{ fontSize: "1.1rem", fontWeight: 700, fontFamily: "var(--font-display)" }}>Propose Playback Change</h3>
               <button
                 onClick={() => setIsOpen(false)}
                 style={{ background: "none", border: "none", color: "var(--text-dim)", cursor: "pointer", fontSize: "1.2rem" }}
@@ -94,33 +94,29 @@ export const RequestModal: React.FC = () => {
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               <div>
                 <label style={{ display: "block", fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "0.4rem" }}>
-                  Action to Propose
+                  Action to propose
                 </label>
                 <select
                   value={requestType}
                   onChange={(e) => setRequestType(e.target.value as any)}
+                  className="input-field"
                   style={{
                     width: "100%",
                     padding: "0.6rem 0.8rem",
-                    background: "rgba(255, 255, 255, 0.05)",
-                    border: "1px solid var(--border-subtle)",
-                    borderRadius: "var(--radius-md)",
-                    color: "#fff",
-                    fontSize: "0.9rem",
-                    outline: "none",
+                    fontSize: "0.875rem",
                   }}
                 >
-                  <option value="play" style={{ background: "#101522" }}>▶ Play Video</option>
-                  <option value="pause" style={{ background: "#101522" }}>⏸ Pause Video</option>
-                  <option value="seek" style={{ background: "#101522" }}>⏩ Seek to Timestamp</option>
-                  <option value="change_video" style={{ background: "#101522" }}>🎬 Change Video</option>
+                  <option value="play" style={{ background: "#101522" }}>▶ Play video</option>
+                  <option value="pause" style={{ background: "#101522" }}>⏸ Pause video</option>
+                  <option value="seek" style={{ background: "#101522" }}>⏩ Seek to timestamp</option>
+                  <option value="change_video" style={{ background: "#101522" }}>🎬 Change video</option>
                 </select>
               </div>
 
               {requestType === "seek" && (
                 <div>
                   <label style={{ display: "block", fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "0.4rem" }}>
-                    Seek Time (seconds)
+                    Seek time (seconds)
                   </label>
                   <input
                     type="number"
@@ -129,15 +125,11 @@ export const RequestModal: React.FC = () => {
                     value={seekTime}
                     onChange={(e) => setSeekTime(Number(e.target.value))}
                     required
+                    className="input-field"
                     style={{
                       width: "100%",
                       padding: "0.6rem 0.8rem",
-                      background: "rgba(255, 255, 255, 0.05)",
-                      border: "1px solid var(--border-subtle)",
-                      borderRadius: "var(--radius-md)",
-                      color: "#fff",
-                      fontSize: "0.9rem",
-                      outline: "none",
+                      fontSize: "0.875rem",
                     }}
                   />
                 </div>
@@ -146,7 +138,7 @@ export const RequestModal: React.FC = () => {
               {requestType === "change_video" && (
                 <div>
                   <label style={{ display: "block", fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "0.4rem" }}>
-                    YouTube Video URL or ID
+                    YouTube video URL or ID
                   </label>
                   <input
                     type="text"
@@ -154,15 +146,11 @@ export const RequestModal: React.FC = () => {
                     onChange={(e) => setVideoUrl(e.target.value)}
                     placeholder="https://youtu.be/..."
                     required
+                    className="input-field"
                     style={{
                       width: "100%",
                       padding: "0.6rem 0.8rem",
-                      background: "rgba(255, 255, 255, 0.05)",
-                      border: "1px solid var(--border-subtle)",
-                      borderRadius: "var(--radius-md)",
-                      color: "#fff",
-                      fontSize: "0.9rem",
-                      outline: "none",
+                      fontSize: "0.875rem",
                     }}
                   />
                 </div>
@@ -183,7 +171,7 @@ export const RequestModal: React.FC = () => {
                   disabled={isSubmitting}
                   style={{ padding: "0.5rem 1.25rem", fontSize: "0.85rem" }}
                 >
-                  {isSubmitting ? "Submitting..." : "Send Request 🚀"}
+                  {isSubmitting ? "Submitting..." : "Send proposal"}
                 </button>
               </div>
             </form>
