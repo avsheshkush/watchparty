@@ -187,7 +187,7 @@ services:
     name: watchparty
     runtime: node
     plan: free
-    buildCommand: npm install && npm run build
+    buildCommand: npm install --include=dev && npm run build
     startCommand: npm start
     healthCheckPath: /health
     envVars:
@@ -199,7 +199,7 @@ services:
 
 1. Push your code to GitHub.
 2. Log into [Render Dashboard](https://dashboard.render.com).
-3. Click **New +** ➔ **Blueprint** and select your repository (or create a **Web Service** with build command `npm install && npm run build` and start command `npm start`).
+3. Click **New +** ➔ **Blueprint** and select your repository (or create a **Web Service** with build command `npm install --include=dev && npm run build` and start command `npm start`).
 4. Set `trust proxy` in Express (already configured in `server/src/index.ts`).
 5. Render will automatically build the client, compile the server, and serve the application with WebSocket upgrades enabled.
 
