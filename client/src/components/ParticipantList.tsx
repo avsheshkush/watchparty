@@ -108,7 +108,7 @@ export const ParticipantList: React.FC = React.memo(() => {
   };
 
   return (
-    <div className="glass-panel" style={{ padding: "1.25rem", height: "100%", display: "flex", flexDirection: "column" }}>
+    <div className="glass-panel participant-list-container" style={{ padding: "1.25rem", height: "100%", display: "flex", flexDirection: "column" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
         <h3 style={{ fontSize: "0.95rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <span>👥 Party Members</span>

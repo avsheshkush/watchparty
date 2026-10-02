@@ -31,50 +31,40 @@ export const ShareRoom: React.FC<ShareRoomProps> = ({ roomId }) => {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "0.75rem",
-        background: "var(--bg-glass)",
-        border: "1px solid var(--border-subtle)",
-        borderRadius: "var(--radius-md)",
-        padding: "0.5rem 0.85rem",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-        <span style={{ color: "var(--text-dim)", fontSize: "0.75rem", textTransform: "none", fontWeight: 500 }}>
-          Room
-        </span>
-        <span
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontWeight: 700,
-            fontSize: "0.95rem",
-            color: "var(--accent-primary)",
-            letterSpacing: "0.06em",
-          }}
-        >
-          {roomId}
-        </span>
+    <div className="share-room-container">
+      <div className="room-code-display">
+        <span className="room-code-label">Room</span>
+        <span className="room-code-value">{roomId}</span>
       </div>
 
-      <div style={{ display: "flex", gap: "0.4rem" }}>
+      <div className="room-code-buttons">
         <button
           onClick={copyCode}
-          className="btn-secondary"
-          style={{ padding: "0.3rem 0.65rem", fontSize: "0.75rem" }}
+          className="btn-secondary room-action-btn"
           title="Copy room code"
         >
-          {copiedCode ? "✓ Copied" : "Copy code"}
+          {copiedCode ? (
+            "✓ Copied"
+          ) : (
+            <>
+              <span className="mobile-action-text">Copy</span>
+              <span className="desktop-action-text">Copy code</span>
+            </>
+          )}
         </button>
         <button
           onClick={copyLink}
-          className="btn-secondary"
-          style={{ padding: "0.3rem 0.65rem", fontSize: "0.75rem" }}
+          className="btn-secondary room-action-btn"
           title="Copy invite link"
         >
-          {copiedLink ? "✓ Link copied" : "Share link"}
+          {copiedLink ? (
+            "✓ Copied"
+          ) : (
+            <>
+              <span className="mobile-action-text">Share</span>
+              <span className="desktop-action-text">Share link</span>
+            </>
+          )}
         </button>
       </div>
     </div>

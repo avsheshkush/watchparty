@@ -45,6 +45,7 @@ export const VideoUrlForm: React.FC<VideoUrlFormProps> = React.memo(({ canContro
   return (
     <form
       onSubmit={handleSubmit}
+      className="video-url-form"
       style={{
         display: "flex",
         gap: "0.5rem",
@@ -57,7 +58,7 @@ export const VideoUrlForm: React.FC<VideoUrlFormProps> = React.memo(({ canContro
         onChange={(e) => setInputUrl(e.target.value)}
         placeholder={canControl ? "Paste YouTube URL or Video ID (e.g. youtu.be/...)" : "Participants can propose video changes"}
         disabled={isSubmitting}
-        className="input-field"
+        className="input-field video-url-input"
         style={{
           flex: 1,
           padding: "0.6rem 0.9rem",
@@ -66,7 +67,7 @@ export const VideoUrlForm: React.FC<VideoUrlFormProps> = React.memo(({ canContro
       />
       <button
         type="submit"
-        className="btn-primary"
+        className="btn-primary video-url-btn"
         disabled={isSubmitting || !inputUrl.trim()}
         style={{ padding: "0.6rem 1.25rem", fontSize: "0.85rem", whiteSpace: "nowrap" }}
       >

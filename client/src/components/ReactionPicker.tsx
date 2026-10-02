@@ -13,6 +13,7 @@ export const ReactionPicker: React.FC = () => {
 
   return (
     <div
+      className="reaction-picker-container"
       style={{
         display: "flex",
         alignItems: "center",
@@ -23,21 +24,23 @@ export const ReactionPicker: React.FC = () => {
         border: "1px solid var(--border-subtle)",
       }}
     >
-      <span style={{ fontSize: "0.75rem", color: "var(--text-dim)", fontWeight: 600, marginRight: "0.2rem" }}>
+      <span className="reaction-picker-label" style={{ fontSize: "0.75rem", color: "var(--text-dim)", fontWeight: 600, marginRight: "0.2rem", whiteSpace: "nowrap" }}>
         React:
       </span>
-      {EMOJIS.map((emoji) => (
-        <button
-          key={emoji}
-          type="button"
-          onClick={() => handleSendReaction(emoji)}
-          disabled={!isConnected}
-          className="reaction-btn"
-          title={`Send ${emoji} reaction`}
-        >
-          {emoji}
-        </button>
-      ))}
+      <div className="reaction-emojis-scroll" style={{ display: "flex", gap: "0.35rem", alignItems: "center" }}>
+        {EMOJIS.map((emoji) => (
+          <button
+            key={emoji}
+            type="button"
+            onClick={() => handleSendReaction(emoji)}
+            disabled={!isConnected}
+            className="reaction-btn"
+            title={`Send ${emoji} reaction`}
+          >
+            {emoji}
+          </button>
+        ))}
+      </div>
     </div>
   );
 };

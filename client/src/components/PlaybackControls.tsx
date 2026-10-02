@@ -50,6 +50,7 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
 
   return (
     <div
+      className="playback-controls-panel"
       style={{
         background: "rgba(10, 13, 20, 0.95)",
         backdropFilter: "blur(16px)",
@@ -62,8 +63,8 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
       }}
     >
       {/* Scrubber slider */}
-      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-        <span style={{ fontSize: "0.75rem", fontFamily: "var(--font-mono)", color: "var(--text-muted)", minWidth: "42px" }}>
+      <div className="scrubber-row" style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+        <span className="time-display time-current" style={{ fontSize: "0.75rem", fontFamily: "var(--font-mono)", color: "var(--text-muted)", minWidth: "42px" }}>
           {formatTime(currentTime)}
         </span>
 
@@ -77,6 +78,7 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
             onChange={handleSeekChange}
             disabled={!canControl}
             title={!canControl ? "Only Host/Moderators can control playback" : "Seek video"}
+            className="scrubber-slider"
             style={{
               width: "100%",
               height: "6px",
@@ -88,19 +90,20 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
           />
         </div>
 
-        <span style={{ fontSize: "0.75rem", fontFamily: "var(--font-mono)", color: "var(--text-muted)", minWidth: "42px" }}>
+        <span className="time-display time-duration" style={{ fontSize: "0.75rem", fontFamily: "var(--font-mono)", color: "var(--text-muted)", minWidth: "42px" }}>
           {formatTime(duration)}
         </span>
       </div>
 
       {/* Buttons Bar */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div className="controls-button-bar" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         {/* Play/Pause + Fast Seeks */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+        <div className="controls-left-group" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <button
             onClick={isPlaying ? onPause : onPlay}
             disabled={!canControl}
-            title={!canControl ? "Only Host/Moderators can control playback" : isPlaying ? "Pause" : "Play"}
+            title={!canControl ? "Only Host/Moderators can control playback" : isPlaying ? "Pause (Space)" : "Play (Space)"}
+            className="control-btn play-pause-btn"
             style={{
               background: canControl ? "var(--accent-primary)" : "rgba(255,255,255,0.05)",
               color: canControl ? "#090c15" : "var(--text-dim)",
@@ -109,8 +112,9 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
               padding: "0.45rem 1rem",
               fontWeight: 700,
               fontSize: "0.875rem",
-              display: "flex",
+              display: "inline-flex",
               alignItems: "center",
+              justifyContent: "center",
               gap: "0.4rem",
               cursor: canControl ? "pointer" : "not-allowed",
               opacity: canControl ? 1 : 0.6,
@@ -125,17 +129,17 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
             <>
               <button
                 onClick={() => onSeek(Math.max(0, currentTime - 10))}
-                className="btn-secondary"
+                className="btn-secondary control-btn jump-btn"
                 style={{ padding: "0.35rem 0.6rem", fontSize: "0.75rem" }}
-                title="Rewind 10s"
+                title="Rewind 10s (Left Arrow -5s)"
               >
                 ⏪ -10s
               </button>
               <button
                 onClick={() => onSeek(Math.min(duration, currentTime + 10))}
-                className="btn-secondary"
+                className="btn-secondary control-btn jump-btn"
                 style={{ padding: "0.35rem 0.6rem", fontSize: "0.75rem" }}
-                title="Forward 10s"
+                title="Forward 10s (Right Arrow +5s)"
               >
                 ⏩ +10s
               </button>
@@ -144,6 +148,7 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
 
           {!canControl && (
             <span
+              className="role-lock-badge"
               style={{
                 fontSize: "0.75rem",
                 color: "var(--text-dim)",
@@ -158,17 +163,19 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
         </div>
 
         {/* Volume & Audio Controls (Client local, always allowed) */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+        <div className="controls-right-group" style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
           <button
             onClick={onToggleMute}
+            className="control-btn mute-btn"
             style={{
               background: "transparent",
               border: "none",
               color: isMuted ? "#f43f5e" : "var(--text-main)",
               cursor: "pointer",
               fontSize: "1.1rem",
+              padding: "0.3rem",
             }}
-            title={isMuted ? "Unmute" : "Mute"}
+            title={isMuted ? "Unmute (m)" : "Mute (m)"}
           >
             {isMuted || volume === 0 ? "🔇" : volume < 50 ? "🔉" : "🔊"}
           </button>
@@ -179,6 +186,7 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
             max={100}
             value={isMuted ? 0 : volume}
             onChange={(e) => onChangeVolume(Number(e.target.value))}
+            className="controls-volume-slider"
             style={{
               width: "70px",
               height: "4px",
@@ -191,7 +199,7 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
           {onFullscreen && (
             <button
               onClick={onFullscreen}
-              className="btn-secondary"
+              className="btn-secondary control-btn fullscreen-btn"
               style={{ padding: "0.35rem 0.6rem", fontSize: "0.85rem" }}
               title={isFullscreen ? "Exit Fullscreen (f)" : "Fullscreen (f)"}
             >

@@ -26,37 +26,16 @@ export const RoomPage: React.FC<RoomPageProps> = ({ onRequestVideoChange, onRequ
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       {/* Top Navbar */}
-      <header
-        style={{
-          borderBottom: "1px solid var(--border-subtle)",
-          background: "rgba(10, 13, 20, 0.8)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-          position: "sticky",
-          top: 0,
-          zIndex: 100,
-          padding: "0.75rem 1.5rem",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "1400px",
-            margin: "0 auto",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: "1rem",
-          }}
-        >
+      <header className="room-header">
+        <div className="room-header-inner">
           {/* Logo & Status */}
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
-              <span style={{ fontSize: "1.4rem" }}>🎬</span>
+          <div className="header-brand-group">
+            <div className="brand-logo" style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
+              <span style={{ fontSize: "1.35rem" }}>🎬</span>
               <span
                 style={{
                   fontWeight: 800,
-                  fontSize: "1.25rem",
+                  fontSize: "1.2rem",
                   fontFamily: "var(--font-display)",
                   color: "#f8fafc",
                   letterSpacing: "-0.02em",
@@ -73,36 +52,25 @@ export const RoomPage: React.FC<RoomPageProps> = ({ onRequestVideoChange, onRequ
           </div>
 
           {/* Share room controls & Leave */}
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <div className="header-actions-group">
             <ShareRoom roomId={roomId} />
 
             <button
               onClick={leaveRoom}
-              className="btn-secondary"
-              style={{ padding: "0.45rem 1rem", fontSize: "0.85rem", borderColor: "rgba(244, 63, 94, 0.4)", color: "#fb7185" }}
+              className="btn-secondary leave-room-btn"
+              title="Leave room"
             >
-              Leave room
+              <span className="mobile-action-text">Leave</span>
+              <span className="desktop-action-text">Leave room</span>
             </button>
           </div>
         </div>
       </header>
 
-      {/* Main Grid: Video Area + Sidebar */}
-      <main
-        style={{
-          flex: 1,
-          maxWidth: "1400px",
-          width: "100%",
-          margin: "1.5rem auto",
-          padding: "0 1.5rem",
-          display: "grid",
-          gridTemplateColumns: "1fr 340px",
-          gap: "1.5rem",
-          alignItems: "start",
-        }}
-      >
-        {/* Left Column: Video Area, Requests, Reactions & Custom Controls */}
-        <section style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+      {/* Main Grid: Video Area + Sidebar (Stacked vertically on mobile, side-by-side on desktop) */}
+      <main className="room-main-grid">
+        {/* Video Area, Requests, Reactions & Custom Controls */}
+        <section className="room-video-section">
           {/* Request Queue for Host/Moderator */}
           {isPrivileged && <RequestQueue />}
 
@@ -112,60 +80,46 @@ export const RoomPage: React.FC<RoomPageProps> = ({ onRequestVideoChange, onRequ
           />
 
           {/* User Status Bar, Quick Reactions & Request Trigger */}
-          <div
-            className="glass-panel"
-            style={{
-              padding: "1rem 1.25rem",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              flexWrap: "wrap",
-              gap: "1rem",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap" }}>
-              <div>
-                <div style={{ fontSize: "0.72rem", color: "var(--text-dim)", textTransform: "none", fontWeight: 500 }}>Signed in as</div>
-                <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--text-main)" }}>{you?.username || "Guest"}</div>
+          <div className="glass-panel user-status-panel">
+            <div className="user-status-top-row">
+              <div className="user-identity-box">
+                <span className="user-identity-label">Signed in as</span>
+                <span className="user-identity-name">{you?.username || "Guest"}</span>
               </div>
 
-              {/* Quick Reactions Bar */}
-              <ReactionPicker />
-            </div>
+              <div className="user-role-actions-box">
+                {!isPrivileged && <RequestModal />}
 
-            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-              {!isPrivileged && <RequestModal />}
-
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: "0.72rem", color: "var(--text-dim)", textTransform: "none", fontWeight: 500 }}>Room role</div>
-                <div style={{ fontWeight: 700, fontSize: "0.92rem", color: you?.role === "host" ? "#fbbf24" : you?.role === "moderator" ? "#93c5fd" : "var(--text-muted)" }}>
-                  {you?.role === "host" ? "👑 Host" : you?.role === "moderator" ? "🛡️ Moderator" : "Viewer"}
+                <div className="user-role-box">
+                  <span className="user-role-label">Room role</span>
+                  <span
+                    className="user-role-badge"
+                    style={{
+                      color:
+                        you?.role === "host"
+                          ? "#fbbf24"
+                          : you?.role === "moderator"
+                          ? "#93c5fd"
+                          : "var(--text-muted)",
+                    }}
+                  >
+                    {you?.role === "host" ? "👑 Host" : you?.role === "moderator" ? "🛡️ Moderator" : "Viewer"}
+                  </span>
                 </div>
               </div>
+            </div>
+
+            {/* Quick Reactions Bar */}
+            <div className="user-status-reactions-row">
+              <ReactionPicker />
             </div>
           </div>
         </section>
 
-        {/* Right Column: Sidebar (Tabs for Participants vs Chat) */}
-        <aside
-          style={{
-            height: "calc(100vh - 120px)",
-            position: "sticky",
-            top: "80px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "0.5rem",
-          }}
-        >
+        {/* Sidebar (Tabs for Participants vs Chat - Below video on mobile, right column on desktop) */}
+        <aside className="room-sidebar">
           {/* Sidebar Tab Switcher */}
-          <div
-            className="glass-panel"
-            style={{
-              display: "flex",
-              padding: "0.25rem",
-              borderRadius: "var(--radius-md)",
-            }}
-          >
+          <div className="glass-panel sidebar-tab-switcher">
             <button
               type="button"
               className={`chat-tab-btn ${activeSidebarTab === "chat" ? "active" : ""}`}
@@ -183,7 +137,7 @@ export const RoomPage: React.FC<RoomPageProps> = ({ onRequestVideoChange, onRequ
           </div>
 
           {/* Active Tab Content */}
-          <div style={{ flex: 1, minHeight: 0 }}>
+          <div className="sidebar-tab-content">
             {activeSidebarTab === "chat" ? <ChatPanel /> : <ParticipantList />}
           </div>
         </aside>

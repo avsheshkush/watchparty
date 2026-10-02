@@ -69,7 +69,7 @@ export const ChatPanel: React.FC = React.memo(() => {
 
   return (
     <div
-      className="glass-panel"
+      className="glass-panel chat-panel-container"
       style={{
         display: "flex",
         flexDirection: "column",
