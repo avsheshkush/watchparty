@@ -7,6 +7,7 @@ interface PlaybackControlsProps {
   isMuted: boolean;
   volume: number;
   canControl: boolean;
+  isFullscreen?: boolean;
   onPlay: () => void;
   onPause: () => void;
   onSeek: (time: number) => void;
@@ -31,6 +32,7 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
   isMuted,
   volume,
   canControl,
+  isFullscreen,
   onPlay,
   onPause,
   onSeek,
@@ -191,9 +193,9 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
               onClick={onFullscreen}
               className="btn-secondary"
               style={{ padding: "0.35rem 0.6rem", fontSize: "0.85rem" }}
-              title="Fullscreen"
+              title={isFullscreen ? "Exit Fullscreen (f)" : "Fullscreen (f)"}
             >
-              ⛶
+              {isFullscreen ? "⤓" : "⛶"}
             </button>
           )}
         </div>

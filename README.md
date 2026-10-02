@@ -129,6 +129,22 @@ flowchart TD
 - **Node.js**: v18.0.0 or higher (v20+ recommended)
 - **npm**: v9.0.0 or higher
 
+### ⚡ One-Click Quick Start (Windows)
+Double-click `start.bat` or run in terminal:
+```cmd
+start.bat
+```
+> **What it does automatically:**
+> 1. Verifies Node.js (v18+) and npm are installed.
+> 2. Sets up `server/.env` and `.env` from template if missing.
+> 3. Installs dependencies if `node_modules` is not present.
+> 4. Launches both Backend (`:3000`) and Frontend (`:5173`) in dedicated windows.
+> 5. Opens [http://localhost:5173](http://localhost:5173) in your default browser.
+
+---
+
+### Manual Setup & Run
+
 ### 1. Clone the repository
 ```bash
 git clone https://github.com/avsheshkush/watchparty.git
@@ -236,6 +252,4 @@ services:
 
 ---
 
-## 📄 License
 
-MIT License. Built with ❤️ for seamless real-time shared streaming experiences.
