@@ -221,30 +221,6 @@ services:
 
 ---
 
-## 🎓 Technical Challenges & Engineering Solutions (Viva / Interview Prep)
-
-### 1. Browser Autoplay Policies
-- **Problem:** Browsers like Chrome and Safari block unmuted programmatic video playback unless preceded by a user gesture.
-- **Solution:** Designed a transparent click-to-join gate overlay on the player. When clicked, it activates the user gesture, initializes audio, and syncs the player to the server's current timestamp.
-
-### 2. Echo Loops & Ping-Pong State Cascades
-- **Problem:** Programmatic calls to `player.seekTo()` or `player.playVideo()` trigger native player state change events, which could inadvertently emit socket events back to the server in an infinite loop.
-- **Solution:** Protected client event handlers with an `isApplyingRemote` boolean ref flag. When remote state is being applied, local event listeners ignore the triggered state changes and reset the flag cleanly on next tick.
-
-### 3. Native YouTube Player Seek Detection
-- **Problem:** YouTube's IFrame API does not offer a dedicated `onSeek` event; users clicking the native scrubber cannot be reliably intercepted.
-- **Solution:** YouTube player is embedded with `controls: 0` and `disablekb: 1`. A custom transparent overlay sits above the iframe, and playback is controlled exclusively through custom glassmorphic HTML/CSS scrubbers with server authority.
-
-### 4. Host Disconnection & Succession Grace Period
-- **Problem:** If a Host accidentally refreshes their page or loses Wi-Fi temporarily, immediately transferring host ownership would frustrate the host.
-- **Solution:** When a Host disconnects, the server marks `connected = false` and starts a 30-second succession timer. If the Host reconnects with their persistent `clientId`, the timer is cancelled and their Host role is preserved. If 30 seconds elapse without reconnection, succession promotes the earliest connected Moderator (or earliest connected Participant).
-
-### 5. Rate Limiting & Resource Leak Prevention
-- **Problem:** Socket event spam or orphaned rooms and interval timers could exhaust Node.js event loop memory.
-- **Solution:** Implemented a per-socket Token Bucket rate limiter (burst 20, 10 refills/sec; chat stricter at burst 5, 1 refill/sec). Every room has an explicit `destroy()` method that clears heartbeat intervals, host succession timers, and pending request collections upon room deletion.
-
----
-
 ## ⚖️ Trade-offs & Future Extensions
 
 - **In-Memory vs Distributed State:** In-memory room storage was chosen for minimal latency and simplicity without external infrastructure dependencies. For multi-server scalability across horizontal instances, a Redis adapter (`@socket.io/redis-adapter`) and persistent room storage (MongoDB or PostgreSQL) can be seamlessly attached.
