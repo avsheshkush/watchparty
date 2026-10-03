@@ -8,6 +8,7 @@ import { RequestQueue } from "./RequestQueue";
 import { RequestModal } from "./RequestModal";
 import { ReactionPicker } from "./ReactionPicker";
 import { ChatPanel } from "./ChatPanel";
+import { UserNav } from "./UserNav";
 
 interface RoomPageProps {
   onRequestVideoChange?: (url: string) => void;
@@ -51,9 +52,10 @@ export const RoomPage: React.FC<RoomPageProps> = ({ onRequestVideoChange, onRequ
             </span>
           </div>
 
-          {/* Share room controls & Leave */}
+          {/* Share room controls, User profile & Leave */}
           <div className="header-actions-group">
             <ShareRoom roomId={roomId} />
+            <UserNav />
 
             <button
               onClick={leaveRoom}

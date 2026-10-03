@@ -19,6 +19,7 @@ function getClientDistPath(): string {
 
 import { RoomManager } from "./rooms/RoomManager";
 import { MessageHandler } from "./handlers/MessageHandler";
+import { authService } from "./auth/authService";
 
 const app = express();
 const server = http.createServer(app);
@@ -116,6 +117,31 @@ export const io = new SocketIOServer(server, {
 
 export const roomManager = new RoomManager();
 export const messageHandler = new MessageHandler(io, roomManager);
+
+// Authentication handshake middleware (Phase 9C P9-T6)
+io.use(async (socket, next) => {
+  const token = socket.handshake.auth?.token;
+
+  // In test environment without explicit token, allow backward-compatible test connections
+  if (config.nodeEnv === "test" && !token) {
+    socket.data.authUser = {
+      id: `test_${socket.id}`,
+      username: "TestUser",
+    };
+    return next();
+  }
+
+  if (token) {
+    const user = await authService.verifyToken(token);
+    if (user) {
+      socket.data.authUser = user;
+      return next();
+    }
+  }
+
+  // Reject unauthenticated connection
+  return next(new Error("UNAUTHORIZED: Authentication required to join WatchParty"));
+});
 
 // Socket connection lifecycle & handler registration
 io.on("connection", (socket) => {

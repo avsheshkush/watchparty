@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
+import { useAuth } from "./AuthContext";
 
 interface AckResponse<T = unknown> {
   ok: boolean;
@@ -12,6 +13,7 @@ interface SocketContextValue {
   socket: Socket | null;
   isConnected: boolean;
   socketId: string;
+  authError: string | null;
   emitWithAck: <T = unknown>(event: string, payload: unknown) => Promise<T>;
   getServerNow: () => number;
 }
@@ -23,15 +25,32 @@ const SERVER_URL =
   (import.meta.env.PROD ? window.location.origin : "http://localhost:3000");
 
 export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { token } = useAuth();
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [socketId, setSocketId] = useState<string>("");
+  const [authError, setAuthError] = useState<string | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const clockOffsetRef = useRef<number>(0);
 
   useEffect(() => {
+    // Only connect if user is authenticated with a valid token
+    if (!token) {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+      setSocket(null);
+      setIsConnected(false);
+      setSocketId("");
+      return;
+    }
+
+    setAuthError(null);
+
     const s: Socket = io(SERVER_URL, {
       transports: ["websocket", "polling"],
+      auth: { token },
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
     });
@@ -40,6 +59,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     s.on("connect", () => {
       setIsConnected(true);
+      setAuthError(null);
       setSocketId(s.id || "");
 
       // Calibrate client-server clock offset
@@ -54,6 +74,14 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       });
     });
 
+    s.on("connect_error", (err: Error) => {
+      console.warn("[Socket] Connection error:", err.message);
+      if (err.message.includes("UNAUTHORIZED")) {
+        setAuthError(err.message);
+      }
+      setIsConnected(false);
+    });
+
     s.on("disconnect", () => {
       setIsConnected(false);
       setSocketId("");
@@ -63,8 +91,9 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     return () => {
       s.disconnect();
+      socketRef.current = null;
     };
-  }, []);
+  }, [token]);
 
   const getServerNow = useCallback(() => {
     return Date.now() + clockOffsetRef.current;
@@ -73,7 +102,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const emitWithAck = <T = unknown,>(event: string, payload: unknown): Promise<T> => {
     return new Promise<T>((resolve, reject) => {
       if (!socketRef.current) {
-        return reject(new Error("Socket not connected"));
+        return reject(new Error("Socket not connected. Please ensure you are logged in."));
       }
 
       socketRef.current.emit(event, payload, (res: AckResponse<T>) => {
@@ -94,7 +123,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   return (
-    <SocketContext.Provider value={{ socket, isConnected, socketId, emitWithAck, getServerNow }}>
+    <SocketContext.Provider value={{ socket, isConnected, socketId, authError, emitWithAck, getServerNow }}>
       {children}
     </SocketContext.Provider>
   );
