@@ -193,8 +193,8 @@ Do in order; each is independent.
 - [ ] P9-T5 Add `MONGODB_URI` env var on Render; document in README
 
 **9C. Authentication**
-- [ ] P9-T6 Login/signup (or Google OAuth); issue JWT; pass in Socket.IO `auth` handshake; reject unauthenticated sockets
-- [ ] P9-T7 Use account ID as stable identity instead of `clientId`
+- [x] P9-T6 Login/signup (or Google OAuth); issue JWT; pass in Socket.IO `auth` handshake; reject unauthenticated sockets
+- [x] P9-T7 Use account ID as stable identity instead of `clientId`
 
 **9D. Scalability**
 - [ ] P9-T8 Add `@socket.io/redis-adapter` + Redis; force `transports: ["websocket"]` (or sticky sessions) for multi-instance

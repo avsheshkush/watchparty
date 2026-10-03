@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useRoom } from "../context/RoomContext";
 import { useSocket } from "../context/SocketContext";
+import { useAuth } from "../context/AuthContext";
 import { getSavedUsername } from "../utils/storage";
 
 interface LandingPageProps {
@@ -11,17 +12,22 @@ interface LandingPageProps {
 export const LandingPage: React.FC<LandingPageProps> = ({ initialRoomCode = "", onRoomJoined }) => {
   const { createRoom, joinRoom, kickedReason, clearKickedReason } = useRoom();
   const { isConnected } = useSocket();
+  const { user } = useAuth();
 
   const [mode, setMode] = useState<"create" | "join">(initialRoomCode ? "join" : "create");
-  const [username, setUsername] = useState<string>("");
+  const [username, setUsername] = useState<string>(() => user?.displayName || getSavedUsername());
   const [roomCode, setRoomCode] = useState<string>(initialRoomCode);
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    const saved = getSavedUsername();
-    if (saved) setUsername(saved);
-  }, []);
+    if (user?.displayName) {
+      setUsername(user.displayName);
+    } else {
+      const saved = getSavedUsername();
+      if (saved) setUsername(saved);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (initialRoomCode) {

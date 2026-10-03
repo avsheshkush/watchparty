@@ -41,9 +41,10 @@ export class RoomManager {
     username: string;
     clientId: string;
     socketId: string;
+    userId?: string;
   }): { room: Room; host: Participant } {
     const roomId = generateRoomCode((code) => this.rooms.has(code));
-    const userId = crypto.randomUUID();
+    const userId = params.userId || crypto.randomUUID();
 
     const host = new Participant({
       userId,

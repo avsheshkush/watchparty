@@ -15,10 +15,17 @@ export function registerRoomHandlers(io: Server, socket: Socket, roomManager: Ro
         return;
       }
 
+      const authUser = socket.data.authUser as { id: string; username: string } | undefined;
+      const isDefaultTestUser = authUser?.id?.startsWith("test_");
+      const effectiveClientId = authUser?.id || parsed.data.clientId;
+      const effectiveUsername =
+        !isDefaultTestUser && authUser?.username ? authUser.username : parsed.data.username || "Host";
+
       const { room, host } = roomManager.createRoom({
-        username: parsed.data.username,
-        clientId: parsed.data.clientId,
+        username: effectiveUsername,
+        clientId: effectiveClientId,
         socketId: socket.id,
+        userId: authUser?.id,
       });
 
       socket.join(room.roomId);
@@ -52,11 +59,17 @@ export function registerRoomHandlers(io: Server, socket: Socket, roomManager: Ro
         return;
       }
 
+      const authUser = socket.data.authUser as { id: string; username: string } | undefined;
+      const isDefaultTestUser = authUser?.id?.startsWith("test_");
+      const effectiveClientId = authUser?.id || parsed.data.clientId;
+      const effectiveUsername =
+        !isDefaultTestUser && authUser?.username ? authUser.username : parsed.data.username || "Guest";
+
       const newParticipant = new Participant({
-        userId: crypto.randomUUID(),
-        clientId: parsed.data.clientId,
+        userId: authUser?.id || crypto.randomUUID(),
+        clientId: effectiveClientId,
         socketId: socket.id,
-        username: parsed.data.username,
+        username: effectiveUsername,
         role: "participant",
       });
 
