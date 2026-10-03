@@ -9,6 +9,12 @@ export interface AuthUserProfile {
   displayName: string;
 }
 
+export interface SignUpResult {
+  user: User | null;
+  session: Session | null;
+  needsEmailVerification: boolean;
+}
+
 interface AuthContextValue {
   user: AuthUserProfile | null;
   supabaseUser: User | null;
@@ -17,7 +23,8 @@ interface AuthContextValue {
   isLoading: boolean;
   isConfigured: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, displayName: string) => Promise<void>;
+  signUp: (email: string, password: string, displayName: string) => Promise<SignUpResult>;
+  resendVerificationEmail: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
   devLogin: (displayName: string, email?: string) => void;
 }
@@ -145,7 +152,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 
   const signUp = useCallback(
-    async (email: string, password: string, displayName: string) => {
+    async (email: string, password: string, displayName: string): Promise<SignUpResult> => {
       if (!isConfigured || !supabase) {
         throw new Error("Supabase is not configured. Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env file.");
       }
@@ -170,9 +177,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(prof);
           saveUsername(prof.displayName);
         }
+        return {
+          user: data.user,
+          session: data.session,
+          needsEmailVerification: !data.session && Boolean(data.user),
+        };
       } finally {
         setIsLoading(false);
       }
+    },
+    [isConfigured]
+  );
+
+  const resendVerificationEmail = useCallback(
+    async (targetEmail: string): Promise<void> => {
+      if (!isConfigured || !supabase) {
+        throw new Error("Supabase is not configured.");
+      }
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: targetEmail.trim(),
+      });
+      if (error) throw error;
     },
     [isConfigured]
   );
@@ -222,6 +248,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isConfigured,
         signIn,
         signUp,
+        resendVerificationEmail,
         signOut,
         devLogin,
       }}
