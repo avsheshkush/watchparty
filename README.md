@@ -44,7 +44,17 @@ A production-grade, real-time synchronized YouTube watch party web application b
 - **In-Room Chat:** 300-character limit, token-bucket rate limiting (5 msgs / 5 sec), role badges (`HOST`, `MOD`), and smooth auto-scroll.
 - **Floating Reactions:** Quick reaction bar (`👍`, `❤️`, `😂`, `😮`, `🔥`, `👏`) triggering floating reaction bursts across the video player.
 
+### 5. 🔐 Supabase Authentication & Verified Identity (Bonus 9C)
+- **JWT Verification in Handshake:** Users can log in/sign up with Supabase Auth. The client passes the Supabase access token in the Socket.IO `auth: { token }` handshake.
+- **Verified Actor Profiles:** `AuthService` verifies the JWT with Supabase on connection, attaching verified user IDs and profile names to room participants.
+- **Dev Mode Fallback:** Automatically operates in quick-access dev mode if Supabase credentials are not configured.
+
 ---
+
+## 📚 Technical Documentation & Guides
+
+- 🏛️ **[Detailed Architecture & Mathematical Sync Model](docs/ARCHITECTURE.md):** In-depth coverage of hub-and-spoke topology, anchor synchronization math, echo-loop guards, and scaling blueprints.
+- 🎓 **[Viva & Code Walkthrough Prep Guide](docs/WALKTHROUGH_VIVA_PREP.md):** 10 key interview questions with exact answers, file-by-file explanations, and solutions to the 5 toughest engineering bugs.
 
 ## 🏛️ Architecture & System Design
 
@@ -178,7 +188,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ### 5. Run Automated Tests
 ```bash
-# Run 61 automated unit and integration tests across 12 test suites
+# Run 65 automated unit and integration tests across 13 test suites
 npm test
 
 # Run TypeScript typechecker / linter across monorepo
@@ -221,10 +231,11 @@ services:
 
 ---
 
-## ⚖️ Trade-offs & Future Extensions
+## ⚖️ Trade-offs & Architecture Considerations
 
-- **In-Memory vs Distributed State:** In-memory room storage was chosen for minimal latency and simplicity without external infrastructure dependencies. For multi-server scalability across horizontal instances, a Redis adapter (`@socket.io/redis-adapter`) and persistent room storage (MongoDB or PostgreSQL) can be seamlessly attached.
-- **Authentication:** Currently relies on persistent browser `clientId` (UUID v4 stored in `localStorage`). A future enhancement could integrate OAuth 2.0 (Google/GitHub) or JWT authentication.
+- **In-Memory vs Distributed State:** In-memory room storage was chosen for minimal latency, zero-setup developer experience, and zero external infrastructure dependencies. For multi-server scalability across horizontal instances, a Redis adapter (`@socket.io/redis-adapter`) and persistent room storage (Supabase PostgreSQL) can be seamlessly attached.
+- **Authentication (Implemented):** Supabase Authentication (Bonus 9C) is built-in with JWT verification during the Socket.IO connection handshake. For zero-config dev workflows, quick-access demo credentials and persistent browser `clientId` (UUID v4) are provided automatically as fallback.
+
 
 ---
 
