@@ -44,13 +44,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setSuccessMsg("");
 
     if (!isConfigured) {
-      if (!displayName.trim() && !email.trim()) {
-        setError("Please enter a username or email to continue");
-        return;
-      }
-      devLogin(displayName.trim() || email.split("@")[0], email.trim());
-      addToast("success", `Signed in as ${displayName.trim() || email.split("@")[0]}`);
-      onSuccess?.();
+      setError("Supabase is not configured in .env. Please configure your Supabase credentials or use the Quick Dev Profiles below.");
+      addToast("warning", "Supabase credentials not configured in .env");
       return;
     }
 
@@ -71,6 +66,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         onSuccess?.();
       } else {
         const result = await signUp(email, password, displayName.trim());
+        if (result.user?.identities && result.user.identities.length === 0) {
+          const warn = `An account with "${email.trim()}" is already registered. Please sign in instead.`;
+          setError(warn);
+          addToast("warning", warn);
+          return;
+        }
         if (result.needsEmailVerification) {
           setVerificationSentEmail(email.trim());
           setResendCountdown(60);
@@ -81,23 +82,48 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         }
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Authentication failed";
+      const errObj = err as Record<string, unknown> | null;
+      const msg = typeof errObj?.message === "string" ? errObj.message : err instanceof Error ? err.message : "Authentication failed";
+      const code = typeof errObj?.code === "string" ? errObj.code : "";
+      const status = typeof errObj?.status === "number" ? errObj.status : 0;
+
       if (mode === "signin") {
-        if (msg.toLowerCase().includes("email not confirmed") || msg.toLowerCase().includes("not confirmed")) {
-          setError("Your email address is not verified yet. Please check your inbox for the confirmation link or resend it below.");
+        if (
+          msg.toLowerCase().includes("email not confirmed") ||
+          msg.toLowerCase().includes("not confirmed")
+        ) {
+          const warn = "Your email address is not verified yet. Please check your inbox for the confirmation link or resend it below.";
+          setError(warn);
+          addToast("warning", "Email not verified yet. Check your inbox.");
         } else if (
+          code === "invalid_credentials" ||
+          status === 400 ||
           msg.toLowerCase().includes("invalid login credentials") ||
           msg.toLowerCase().includes("invalid credentials") ||
-          msg.toLowerCase().includes("user not found")
+          msg.toLowerCase().includes("user not found") ||
+          msg.toLowerCase().includes("invalid_grant") ||
+          msg.toLowerCase().includes("no registered account")
         ) {
-          setError(
-            `No registered account found for ${email ? `"${email}"` : "this email"} (or the password is incorrect). If you haven't created an account yet, please sign up first.`
-          );
+          const warn = `No registered account found for "${email}" (or the password is incorrect). If you haven't created an account yet, please sign up first.`;
+          setError(warn);
+          addToast("error", `No registered account found for "${email}". Please sign up first.`);
         } else {
           setError(msg);
+          addToast("error", msg);
         }
       } else {
-        setError(msg);
+        if (
+          msg.toLowerCase().includes("already registered") ||
+          msg.toLowerCase().includes("already exists") ||
+          msg.toLowerCase().includes("already in use")
+        ) {
+          const warn = `An account with "${email}" is already registered. Please sign in instead.`;
+          setError(warn);
+          addToast("warning", warn);
+        } else {
+          setError(msg);
+          addToast("error", msg);
+        }
       }
     }
   };
@@ -375,6 +401,50 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </button>
               </div>
             )}
+
+          {/* Action for already-registered email in signup mode */}
+          {mode === "signup" && error.toLowerCase().includes("already registered") && (
+            <div
+              style={{
+                marginTop: "0.35rem",
+                paddingTop: "0.5rem",
+                borderTop: "1px solid rgba(239, 68, 68, 0.25)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                flexWrap: "wrap",
+                gap: "0.5rem",
+              }}
+            >
+              <span style={{ fontSize: "0.78rem", color: "#fca5a5" }}>
+                Already have an account with this email?
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("signin");
+                  setError("");
+                  setSuccessMsg("");
+                }}
+                style={{
+                  padding: "0.35rem 0.75rem",
+                  borderRadius: "6px",
+                  background: "rgba(99, 102, 241, 0.25)",
+                  border: "1px solid rgba(99, 102, 241, 0.5)",
+                  color: "#c7d2fe",
+                  fontSize: "0.78rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.35rem",
+                }}
+              >
+                <span>🔑</span>
+                <span>Switch to Sign In →</span>
+              </button>
+            </div>
+          )}
         </div>
       )}
 
