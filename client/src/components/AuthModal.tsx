@@ -82,8 +82,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Authentication failed";
-      if (msg.toLowerCase().includes("email not confirmed") || msg.toLowerCase().includes("not confirmed")) {
-        setError("Your email address is not verified yet. Please check your inbox for the confirmation link or resend it below.");
+      if (mode === "signin") {
+        if (msg.toLowerCase().includes("email not confirmed") || msg.toLowerCase().includes("not confirmed")) {
+          setError("Your email address is not verified yet. Please check your inbox for the confirmation link or resend it below.");
+        } else if (
+          msg.toLowerCase().includes("invalid login credentials") ||
+          msg.toLowerCase().includes("invalid credentials") ||
+          msg.toLowerCase().includes("user not found")
+        ) {
+          setError(
+            `No registered account found for ${email ? `"${email}"` : "this email"} (or the password is incorrect). If you haven't created an account yet, please sign up first.`
+          );
+        } else {
+          setError(msg);
+        }
       } else {
         setError(msg);
       }
@@ -290,6 +302,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <span>⚠️</span>
             <span style={{ flex: 1 }}>{error}</span>
           </div>
+
+          {/* Action for unverified email */}
           {(error.toLowerCase().includes("not verified") || error.toLowerCase().includes("not confirmed")) && email && (
             <button
               type="button"
@@ -314,6 +328,53 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 : `Resend verification email to ${email}`}
             </button>
           )}
+
+          {/* Action for non-registered email */}
+          {mode === "signin" &&
+            (error.toLowerCase().includes("not registered") ||
+              error.toLowerCase().includes("no registered account") ||
+              error.toLowerCase().includes("invalid")) && (
+              <div
+                style={{
+                  marginTop: "0.35rem",
+                  paddingTop: "0.5rem",
+                  borderTop: "1px solid rgba(239, 68, 68, 0.25)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: "0.5rem",
+                }}
+              >
+                <span style={{ fontSize: "0.78rem", color: "#fca5a5" }}>
+                  Don't have an account with this email yet?
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode("signup");
+                    setError("");
+                    setSuccessMsg("");
+                  }}
+                  style={{
+                    padding: "0.35rem 0.75rem",
+                    borderRadius: "6px",
+                    background: "rgba(99, 102, 241, 0.25)",
+                    border: "1px solid rgba(99, 102, 241, 0.5)",
+                    color: "#c7d2fe",
+                    fontSize: "0.78rem",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.35rem",
+                  }}
+                >
+                  <span>✨</span>
+                  <span>Create Account with {email ? email.split("@")[0] : "this email"} →</span>
+                </button>
+              </div>
+            )}
         </div>
       )}
 
@@ -653,6 +714,55 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               "Create Account & Join"
             )}
           </button>
+
+          {/* Quick toggle link */}
+          {mode === "signin" ? (
+            <p style={{ marginTop: "1rem", marginBottom: 0, textAlign: "center", fontSize: "0.825rem", color: "#94a3b8" }}>
+              Don't have an account yet?{" "}
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("signup");
+                  setError("");
+                  setSuccessMsg("");
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#818cf8",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  padding: 0,
+                  textDecoration: "underline",
+                }}
+              >
+                Create Account
+              </button>
+            </p>
+          ) : (
+            <p style={{ marginTop: "1rem", marginBottom: 0, textAlign: "center", fontSize: "0.825rem", color: "#94a3b8" }}>
+              Already registered?{" "}
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("signin");
+                  setError("");
+                  setSuccessMsg("");
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#818cf8",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  padding: 0,
+                  textDecoration: "underline",
+                }}
+              >
+                Sign In
+              </button>
+            </p>
+          )}
         </form>
       )}
 
